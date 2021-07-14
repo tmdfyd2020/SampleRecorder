@@ -1,10 +1,13 @@
 package org.techtown.samplerecorder;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -12,19 +15,23 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     short[] record_to_short, track_to_short;
     int record_bufferSize, BufferTrackSize, track_bufferSize;
-    int SamplingRate = 16000;
+    int SamplingRate = 16000, tempRate;
 
     AudioRecord audioRecord = null;
     boolean isRecording = false;
@@ -35,13 +42,16 @@ public class MainActivity extends AppCompatActivity {
     boolean isPlaying = false;
     Thread playThread = null;
 
-    Button btn_record, btn_play, btn_exit;
+    Button btn_record, btn_play, btn_setting, btn_exit;
     ImageView img_recording;
+    TextView text_timer;
 
     int BufferShortSize = SamplingRate * 10;  // 저장될 버퍼의 크기 -> 늘리니까 늘어남
     ShortBuffer shortBuffer = ShortBuffer.allocate(BufferShortSize);
 
     Queue<ShortBuffer> queue;
+
+    private long baseTime, storeTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,31 +72,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         img_recording = (ImageView) findViewById(R.id.img_recording);
+        text_timer = (TextView) findViewById(R.id.text_timer);
 
-        // TODO 버튼 리스너 하나 설정해놓고, 스위치 문으로 묶기 -> RyongNote 참고(?)
         btn_record = (Button) findViewById(R.id.btn_record);
-        btn_record.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                record();
-            }
-        });
-
+        btn_record.setOnClickListener(this);
         btn_play = (Button) findViewById(R.id.btn_play);
-        btn_play.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                play();
-            }
-        });
-
+        btn_play.setOnClickListener(this);
+        btn_setting = (Button) findViewById(R.id.btn_setting);
+        btn_setting.setOnClickListener(this);
         btn_exit = (Button) findViewById(R.id.btn_exit);
-        btn_exit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                exit();
-            }
-        });
+        btn_exit.setOnClickListener(this);
 
         record_bufferSize = AudioRecord.getMinBufferSize(SamplingRate,
                 AudioFormat.CHANNEL_IN_MONO,
@@ -100,12 +95,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()) {
+            case R.id.btn_record:
+                record();
+                break;
+            case R.id.btn_play:
+                play();
+                break;
+            case R.id.btn_setting:
+                setting();
+                break;
+            case R.id.btn_exit:
+                exit();
+                break;
+        }
+    }
+
     public void record() {
         if (isRecording == true) {  // 녹화가 진행 중일 떄 버튼이 눌리면,
             isRecording = false;
             btn_record.setText("Record");
             btn_play.setEnabled(true);
             img_recording.setVisibility(View.INVISIBLE);
+            btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
+            storeTime = SystemClock.elapsedRealtime();
+            handler.removeMessages(0);
 
             audioRecord.stop();
             audioRecord.release();
@@ -131,6 +147,10 @@ public class MainActivity extends AppCompatActivity {
             btn_record.setText("Stop");
             btn_play.setEnabled(false);
             img_recording.setVisibility(View.VISIBLE);
+            text_timer.setVisibility(View.VISIBLE);
+            btn_record.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
+            baseTime = SystemClock.elapsedRealtime();
+            handler.sendEmptyMessage(0);
 
             retBufferSize = 0;
             audioRecord.startRecording();
@@ -166,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         if (isPlaying == true) {  // 플레이가 진행 중인 상태에서 "STOP"을 누르면,
             isPlaying = false;
             btn_play.setText("Play");
+            btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
 
             destroyAudioTrack();
         } else {
@@ -174,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
             isPlaying = true;
             btn_play.setText("Stop");
+            btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
 
             audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                     SamplingRate,
@@ -219,6 +241,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void setting() {
+        final String[] frequencyArray = new String[] {"8,000", "16,000"};
+        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+        dialog.setIcon(getDrawable(R.drawable.frequency));
+        dialog.setTitle("Sampling Rate");
+        dialog.setSingleChoiceItems(frequencyArray, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (frequencyArray[which].equals("8,000")) {
+                    Toast.makeText(MainActivity.this, frequencyArray[which] + "을 선택함.", Toast.LENGTH_SHORT).show();
+                    tempRate = 8000;
+                } else {
+                    Toast.makeText(MainActivity.this, frequencyArray[which] + "을 선택함.", Toast.LENGTH_SHORT).show();
+                    tempRate = 16000;
+                }
+            }
+        });
+        dialog.setPositiveButton("Choice", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                SamplingRate = tempRate;
+                Toast.makeText(MainActivity.this, Integer.toString(SamplingRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+        dialog.setNegativeButton("Back", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(MainActivity.this, "취소", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        });
+        dialog.show();
+
+
+    }
+
     public void exit() {
         audioRecord = null;
         audioTrack = null;
@@ -227,10 +286,33 @@ public class MainActivity extends AppCompatActivity {
 
         btn_record.setEnabled(true);
         queue = new LinkedList<ShortBuffer>();
+        text_timer.setText("00 : 00 : 00");
+        baseTime = 0;
+        storeTime = 0;
     }
+
+    public String getTime() {  // 스톱워치 실시간 시간
+        long nowTime = SystemClock.elapsedRealtime();
+        long overTime = nowTime - baseTime;
+
+        long m = overTime / 1000 / 60;
+        long s = (overTime / 1000) % 60;
+        long ms = overTime % 1000;
+
+        String recTime = String.format("%02d : %02d : %01d", m, s, ms);
+
+        return recTime;
+    }
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            text_timer.setText(getTime());
+
+            handler.sendEmptyMessage(0);
+        }
+    };
 }
 
-// TODO : 전체적인 UI 꾸미기
-// TODO : Sampling Rate 선택하는 UI 만들기
-// TODO : 클래스 전체 분류 및 코드 리팩토링
-// TODO : AudioRecord 기능 측정
+// TODO : 클래스 전체 분류 및 코드 리팩토링(변수명 등)
+// TODO : AudioRecord 기능 측정 -> 10초 가량 녹음을 지속하면 튕긴다.
