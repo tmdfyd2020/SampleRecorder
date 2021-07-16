@@ -24,7 +24,7 @@ public class AudioTrack {
     public void init() {
         myLog.d("");
 
-        capacity_buffer = mainActivity.SamplingRate * 100;
+        capacity_buffer = mainActivity.SamplingRate * 50;
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(

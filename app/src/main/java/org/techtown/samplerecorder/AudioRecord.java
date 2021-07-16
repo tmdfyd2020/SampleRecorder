@@ -23,7 +23,7 @@ public class AudioRecord {
     public void init() {
         myLog.d("");
 
-        capacity_buffer = mainActivity.SamplingRate * 100;
+        capacity_buffer = mainActivity.SamplingRate * 50;
 
         record_bufferSize = android.media.AudioRecord.getMinBufferSize(
                 mainActivity.SamplingRate,

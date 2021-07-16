@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setEnabled(false);
         btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
         btn_play.setEnabled(true);
+        btn_setting.setEnabled(true);
         img_recording.setVisibility(View.INVISIBLE);
 
         long stopTime = SystemClock.elapsedRealtime();
@@ -121,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startRecording() {
         myLog.d("");
+        myLog.d("Recording Sampling Rate = " + String.valueOf(SamplingRate));
+
         isRecording = true;
 
         btn_record.setText("Stop");
@@ -151,15 +154,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
+        btn_setting.setEnabled(true);
+
         playHandler.removeMessages(0);
     }
 
     public void startPlaying() {
         myLog.d("");
+        myLog.d("Playing Sampling Rate = " + String.valueOf(SamplingRate));
         isPlaying = true;
 
         btn_play.setText("Stop");
         btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
+        btn_setting.setEnabled(false);
 
         startTime = SystemClock.elapsedRealtime();
         playHandler.sendEmptyMessage(0);
