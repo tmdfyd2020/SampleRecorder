@@ -2,77 +2,71 @@ package org.techtown.samplerecorder;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
-import android.util.Log;
 
 import java.nio.ShortBuffer;
 
 public class AudioTrack {
 
-    short[] track_to_short;
-    int BufferTrackSize, track_bufferSize;
-    int SamplingRate;
-
-    android.media.AudioTrack audioTrack = null;
-    boolean isPlaying;
-    Thread playThread = null;
-
-    int BufferShortSize;
-    ShortBuffer shortBuffer;
-
     final static MainActivity mainActivity = new MainActivity();
+    private Queue Queue_fromRecord;
 
-    Queue trackQueue;
+    private final int STREAM_TYPE = AudioManager.STREAM_MUSIC;
+    private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_OUT_MONO;
+    private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    private final int MODE = android.media.AudioTrack.MODE_STREAM;
 
-
-    public AudioTrack() {
-
-    }
+    private android.media.AudioTrack audioTrack = null;
+    private Thread playThread = null;
+    private ShortBuffer shortBuffer;
+    private short[] audioData;
+    private int capacity_buffer, track_bufferSize, len_audioData;
 
     public void init() {
-        android.util.Log.d("[Main]", "AudioTrack init()");
+        myLog.d("");
 
-        BufferShortSize = mainActivity.SamplingRate * 10;
-        shortBuffer = ShortBuffer.allocate(BufferShortSize);
+        capacity_buffer = mainActivity.SamplingRate * 100;
+        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
+        track_bufferSize = android.media.AudioTrack.getMinBufferSize(
+                mainActivity.SamplingRate,
+                CHANNEL_CONFIG,
+                AUDIO_FORMAT
+        );
 
-        track_bufferSize = android.media.AudioTrack.getMinBufferSize(mainActivity.SamplingRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT) * 2;
+        myLog.d("track_bufferSize = " + String.valueOf(track_bufferSize));
 
-        trackQueue = AudioRecord.myQueue;
+        audioData = new short[track_bufferSize];
+        len_audioData = audioData.length;
+
+        Queue_fromRecord = AudioRecord.myQueue;
     }
 
     public void play() {
-        android.util.Log.d("[Main]", "AudioTrack play()");
-        android.util.Log.d("[Main]", "[AudioTrack][play()] isPlaying : " + String.valueOf(mainActivity.isPlaying));
-        track_to_short = new short[track_bufferSize];
-        BufferTrackSize = track_to_short.length;
+        myLog.d("");
 
-        audioTrack = new android.media.AudioTrack(AudioManager.STREAM_MUSIC,
-                mainActivity.SamplingRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                track_to_short.length,
-                android.media.AudioTrack.MODE_STREAM);
+        if (audioTrack == null) {
+            audioTrack = new android.media.AudioTrack(
+                    STREAM_TYPE,
+                    mainActivity.SamplingRate,
+                    CHANNEL_CONFIG,
+                    AUDIO_FORMAT,
+                    audioData.length,
+                    MODE
+            );
+        }
 
         playThread = new Thread(new Runnable() {
             @Override
             public void run() {
 
-                // shortBuffer.position(0);
-                // audioTrack.play();
-                android.util.Log.d("[Main]", "[AudioTrack][play()][Thread] isPlaying : " + String.valueOf(mainActivity.isPlaying));
-
-                shortBuffer = trackQueue.dequeue();
+                shortBuffer = Queue_fromRecord.dequeue();  // queue -> shortBuffer
                 shortBuffer.position(0);
 
                 audioTrack.play();
-                // TODO
+
                 while (mainActivity.isPlaying) {
-                    // shortBuffer = trackQueue.dequeue();
-                    shortBuffer.get(track_to_short, 0, BufferTrackSize); // shortBuffer -> track_to_short
-                    // error : Attempt to invoke virtual method 'java.nio.ShortBuffer java.nio.ShortBuffer.get(short[], int, int)' on a null object reference
-                    audioTrack.write(track_to_short, 0, BufferTrackSize); // track_to_short -> audioTrack
+                    shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
+                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
                 }
             }
         });
@@ -80,28 +74,44 @@ public class AudioTrack {
     }
 
     public void stop() {
-        android.util.Log.d("[Main]", "Track stop()");
+        myLog.d("");
+
         if (audioTrack != null && audioTrack.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
             if (audioTrack.getPlayState() != android.media.AudioTrack.PLAYSTATE_STOPPED) {
                 try {
-                    audioTrack.stop(); // 오디오 재생 종료
+                    audioTrack.stop();
 
                 } catch (IllegalStateException e) {
                     e.printStackTrace();
                 }
-                audioTrack.release(); // 오디오 트랙이 잡은 모든 리소스를 해제시킨다.
+
+                audioTrack.release();
                 audioTrack = null;
+
                 playThread = null;
             }
         }
     }
 
     public void release() {
-        Log.d("[Main]", "Track release()");
-        audioTrack = null;
-        playThread = null;
+        myLog.d("");
 
-        trackQueue = AudioRecord.myQueue;
+        mainActivity.isPlaying = false;
+
+        if (audioTrack != null && audioTrack.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
+            if (audioTrack.getPlayState() == android.media.AudioTrack.PLAYSTATE_PLAYING) {
+                try {
+                    audioTrack.stop();
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+                }
+                audioTrack.release();
+                audioTrack = null;
+
+                playThread = null;
+            }
+        }
+
+        Queue_fromRecord = AudioRecord.myQueue;
     }
-
 }

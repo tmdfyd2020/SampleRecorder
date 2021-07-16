@@ -26,7 +26,7 @@
         android:id="@+id/text_timer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="00 : 00 : 00"
+        android:text=""
         android:textSize="40sp"
         android:visibility="invisible"
         android:layout_marginTop="5dp"

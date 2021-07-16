@@ -8,22 +8,22 @@ import java.util.LinkedList;
 public class Queue {
 
     java.util.Queue<ShortBuffer> queue;
-    // public static Queue qcontext;
 
     public Queue() {
-        android.util.Log.d("[Main]", "Queue creator()");
+        myLog.d("");
+
         queue = new LinkedList<ShortBuffer>();
-        // queue = new ConcurrentLinkedQueue<ShortBuffer>();
-        // qcontext = this;
     }
 
     public void enqueue(ShortBuffer shortBuffer) {
-        android.util.Log.d("[Main]", "Queue enqueue()");
+        myLog.d("");
+
         queue.add(shortBuffer);
     }
 
     public ShortBuffer dequeue() {
-        Log.d("[Main]", "Queue dequeue()");
+        myLog.d("");
+
         return queue.peek();
     }
 }
