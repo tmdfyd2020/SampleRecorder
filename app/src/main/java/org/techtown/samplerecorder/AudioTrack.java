@@ -24,16 +24,14 @@ public class AudioTrack {
     public void init() {
         myLog.d("");
 
-        capacity_buffer = mainActivity.SamplingRate * 50;
+        capacity_buffer = mainActivity.SamplingRate * 30;
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(
                 mainActivity.SamplingRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
-        );
-
-        myLog.d("track_bufferSize = " + String.valueOf(track_bufferSize));
+        ) * 2;
 
         audioData = new short[track_bufferSize];
         len_audioData = audioData.length;
@@ -43,6 +41,7 @@ public class AudioTrack {
 
     public void play() {
         myLog.d("");
+        myLog.d("Playing Sampling Rate : " + String.valueOf(mainActivity.SamplingRate));
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack(
@@ -59,13 +58,14 @@ public class AudioTrack {
             @Override
             public void run() {
 
-                shortBuffer = Queue_fromRecord.dequeue();  // queue -> shortBuffer
-                shortBuffer.position(0);
-
                 audioTrack.play();
+
+                shortBuffer = Queue_fromRecord.dequeue();  // queue -> shortBuffer
+                shortBuffer.position(0);  // TODO >> null object reference
 
                 while (mainActivity.isPlaying) {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
+                    // TODO >> error : BufferUnderflowException
                     audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
                 }
             }
@@ -111,7 +111,7 @@ public class AudioTrack {
                 playThread = null;
             }
         }
-
+        Queue_fromRecord.init();
         Queue_fromRecord = AudioRecord.myQueue;
     }
 }

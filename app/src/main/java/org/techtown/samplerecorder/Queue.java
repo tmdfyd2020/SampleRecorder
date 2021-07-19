@@ -26,4 +26,8 @@ public class Queue {
 
         return queue.peek();
     }
+
+    public void init() {
+        queue = null;
+    }
 }

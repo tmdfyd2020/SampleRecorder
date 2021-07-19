@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView text_timer;
 
     private long startTime, totalTime;
-    private int tempRate = 16000, dialogIndex = 1;
+    private int tempRate = 16000, dialogIndex = 1, count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +74,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void allInit() {
+        myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
+        myAudioRecord.init();
+
+        myAudioTrack = new org.techtown.samplerecorder.AudioTrack();
+        myAudioTrack.init();
+    }
+
     @Override
     public void onClick(View v) {
         switch(v.getId()) {
@@ -96,9 +104,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myLog.d("");
         if (isRecording == true) {  // 녹화가 진행 중일 때 버튼이 눌리면,
             myAudioRecord.stop();
+            isRecording = false;  // 여기다가 두니까 되고, 아래다가 두니까 가끔씩 안되고..? ☆
             stopRecording();
         } else {  // isRecording == false 일 때,
             myAudioRecord.start();
+            isRecording = true;
             startRecording();
         }
     }
@@ -117,13 +127,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long stopTime = SystemClock.elapsedRealtime();
         totalTime = stopTime - startTime;
         recordHandler.removeMessages(0);
-        android.util.Log.d("[Main]", String.valueOf(stopTime));
+
     }
 
     public void startRecording() {
         myLog.d("");
-        myLog.d("Recording Sampling Rate = " + String.valueOf(SamplingRate));
-
         isRecording = true;
 
         btn_record.setText("Stop");
@@ -135,6 +143,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTime = SystemClock.elapsedRealtime();
         recordHandler.sendEmptyMessage(0);
+
+        count = 1;
     }
 
     public void play() {
@@ -161,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startPlaying() {
         myLog.d("");
-        myLog.d("Playing Sampling Rate = " + String.valueOf(SamplingRate));
         isPlaying = true;
 
         btn_play.setText("Stop");
@@ -193,9 +202,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.setPositiveButton("Choice", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                SamplingRate = tempRate;
-                myAudioRecord.init();
-                myAudioTrack.init();
+                if (count == 0) {  // 처음부터 Sampling Rate 변경하여 녹음할 때
+                    SamplingRate = tempRate;
+                    allInit();
+                } else {  // 녹음을 한 후 Sampling Rate 변경하여 들을 때
+                    SamplingRate = tempRate;
+                }
 
                 Toast.makeText(MainActivity.this, Integer.toString(SamplingRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
             }
@@ -220,7 +232,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
         btn_setting.setEnabled(true);
+        btn_exit.setEnabled(false);
         text_timer.setVisibility(View.INVISIBLE);
+
+        SamplingRate = tempRate;
+        allInit();
+        count = 0;
 
         startTime = 0;
         totalTime = 0;

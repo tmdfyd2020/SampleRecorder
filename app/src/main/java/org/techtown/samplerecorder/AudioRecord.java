@@ -23,23 +23,23 @@ public class AudioRecord {
     public void init() {
         myLog.d("");
 
-        capacity_buffer = mainActivity.SamplingRate * 50;
+        capacity_buffer = mainActivity.SamplingRate * 30;
 
         record_bufferSize = android.media.AudioRecord.getMinBufferSize(
                 mainActivity.SamplingRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
-        );
-
-        myLog.d("record_bufferSize = " + String.valueOf(record_bufferSize));
+        ) * 2;
 
         myQueue = new Queue();
     }
 
     public void start() {
         myLog.d("");
+        myLog.d("Recording Sampling Rate : " + String.valueOf(mainActivity.SamplingRate));
 
         audioData = new short[record_bufferSize];
+        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
@@ -57,15 +57,18 @@ public class AudioRecord {
             @Override
             public void run() {
 
-                shortBuffer = ShortBuffer.allocate(capacity_buffer);
+                // shortBuffer = ShortBuffer.allocate(capacity_buffer);
                 shortBuffer.rewind();
 
                 len_audioData = 0;
+                myLog.d("Recording isRecording : " + String.valueOf(mainActivity.isRecording));
+                  // TODO >> error : 가끔 왜 안되는지 원인을 찾음 -> isRecording이 false가 됨.
                 while(mainActivity.isRecording) {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
-                    // myQueue.enqueue(shortBuffer);  // shortBuffer -> queue
                 }
+                myLog.d("len_audioData Size = " + String.valueOf(len_audioData));  // 녹음이 안될 때는 len_audioData = 0이 찍힌다.
+                // 녹음을 진행하고 끝내지도 않았는데 바로 len_audioData가 0이 찍힌다.
                 myQueue.enqueue(shortBuffer);  // shortBuffer -> queue
             }
         });
@@ -98,6 +101,7 @@ public class AudioRecord {
         audioData = null;
         shortBuffer = null;
 
+        myQueue.init();
         myQueue = new Queue();
     }
 }
