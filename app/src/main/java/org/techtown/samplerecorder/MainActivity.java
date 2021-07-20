@@ -30,10 +30,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button btn_record, btn_play, btn_setting, btn_exit;
     private ImageView img_recording;
-    private TextView text_timer;
+    private TextView text_timer, text_samplingRate;
 
     private long startTime, totalTime;
-    private int tempRate = 16000, dialogIndex = 1, count = 0;
+    private int tempRate = SamplingRate, dialogIndex = 1;
+    private boolean isRecorded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         img_recording = (ImageView) findViewById(R.id.img_recording);
         text_timer = (TextView) findViewById(R.id.text_timer);
+        text_samplingRate = (TextView) findViewById(R.id.text_samplingRate);
 
         btn_record = (Button) findViewById(R.id.btn_record);
         btn_record.setOnClickListener(this);
@@ -71,6 +73,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.RECORD_AUDIO},
                     101);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 101) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            } else {
+                finish();
+            }
         }
     }
 
@@ -102,9 +117,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void record() {
         myLog.d("");
+
         if (isRecording == true) {  // 녹화가 진행 중일 때 버튼이 눌리면,
             myAudioRecord.stop();
-            isRecording = false;  // 여기다가 두니까 되고, 아래다가 두니까 가끔씩 안되고..? ☆
+            isRecording = false;  // anomaly : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // isRecording == false 일 때,
             myAudioRecord.start();
@@ -115,7 +131,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void stopRecording() {
         myLog.d("");
-        isRecording = false;
 
         btn_record.setText("Record");
         btn_record.setEnabled(false);
@@ -127,12 +142,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long stopTime = SystemClock.elapsedRealtime();
         totalTime = stopTime - startTime;
         recordHandler.removeMessages(0);
-
     }
 
     public void startRecording() {
         myLog.d("");
-        isRecording = true;
 
         btn_record.setText("Stop");
         btn_record.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
@@ -144,23 +157,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startTime = SystemClock.elapsedRealtime();
         recordHandler.sendEmptyMessage(0);
 
-        count = 1;
+        isRecorded = true;
     }
 
     public void play() {
         myLog.d("");
+
         if (isPlaying == true) {  // 플레이가 진행 중인 상태에서 "STOP"을 누르면,
-            stopPlaying();
+            isPlaying = false;
             myAudioTrack.stop();
+            stopPlaying();
         } else {
-            startPlaying();
+            isPlaying = true;
             myAudioTrack.play();
+            startPlaying();
         }
     }
 
     public void stopPlaying() {
         myLog.d("");
-        isPlaying = false;
 
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
@@ -171,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startPlaying() {
         myLog.d("");
-        isPlaying = true;
 
         btn_play.setText("Stop");
         btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
@@ -183,8 +197,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void setting() {
         myLog.d("");
-        final String[] frequencyArray = new String[] {"8,000", "16,000"};
 
+        final String[] frequencyArray = new String[] {"8,000", "16,000"};
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
         dialog.setIcon(getDrawable(R.drawable.frequency));
         dialog.setTitle("Sampling Rate");
@@ -202,11 +216,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.setPositiveButton("Choice", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (count == 0) {  // 처음부터 Sampling Rate 변경하여 녹음할 때
+                if (isRecorded == false) {  // 처음부터 Sampling Rate 변경하여 녹음할 때
                     SamplingRate = tempRate;
+                    text_samplingRate.setText("Sampling Rate : " + String.valueOf(SamplingRate));
                     allInit();
                 } else {  // 녹음을 한 후 Sampling Rate 변경하여 들을 때
                     SamplingRate = tempRate;
+                    text_samplingRate.setText("Sampling Rate : " + String.valueOf(SamplingRate));
                 }
 
                 Toast.makeText(MainActivity.this, Integer.toString(SamplingRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -224,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void exit() {
         myLog.d("");
+
         myAudioRecord.release();
         myAudioTrack.release();
 
@@ -237,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         SamplingRate = tempRate;
         allInit();
-        count = 0;
+        isRecorded = false;
 
         startTime = 0;
         totalTime = 0;
@@ -296,6 +313,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         return timeText;
     }
-
 
 }

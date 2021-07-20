@@ -31,7 +31,7 @@ public class AudioTrack {
                 mainActivity.SamplingRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
-        ) * 2;
+        );
 
         audioData = new short[track_bufferSize];
         len_audioData = audioData.length;
@@ -61,14 +61,14 @@ public class AudioTrack {
                 audioTrack.play();
 
                 shortBuffer = Queue_fromRecord.dequeue();  // queue -> shortBuffer
-                shortBuffer.position(0);  // TODO >> null object reference
+                shortBuffer.position(0);
 
                 while (mainActivity.isPlaying) {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
-                    // TODO >> error : BufferUnderflowException
                     audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
                 }
             }
+
         });
         playThread.start();
     }
