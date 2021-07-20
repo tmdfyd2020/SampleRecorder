@@ -7,12 +7,11 @@ import java.nio.ShortBuffer;
 
 public class AudioRecord {
 
-    final static MainActivity mainActivity = new MainActivity();
-    public static Queue myQueue;
-
     private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+
+    public static Queue queue;
 
     private android.media.AudioRecord audioRecord = null;
     private Thread recordThread = null;
@@ -21,30 +20,29 @@ public class AudioRecord {
     private int capacity_buffer, record_bufferSize, len_audioData;
 
     public void init() {
-        myLog.d("");
+        myLog.d("method activate");
 
-        capacity_buffer = mainActivity.SamplingRate * 30;
+        capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
-        record_bufferSize = android.media.AudioRecord.getMinBufferSize(
-                mainActivity.SamplingRate,
+        record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
+                MainActivity.SampleRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
         );
 
         audioData = new short[record_bufferSize];
-
-        myQueue = new Queue();
+        queue = new Queue();
     }
 
     public void start() {
-        myLog.d("");
-        myLog.d("Recording Sampling Rate : " + String.valueOf(mainActivity.SamplingRate));
+        myLog.d("method activate");
+        myLog.d("Recording Sample Rate : " + String.valueOf(MainActivity.SampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
                     AUDIO_SOURCE,
-                    mainActivity.SamplingRate,
+                    MainActivity.SampleRate,
                     CHANNEL_CONFIG,
                     AUDIO_FORMAT,
                     audioData.length
@@ -58,23 +56,22 @@ public class AudioRecord {
             public void run() {
 
                 shortBuffer.rewind();
-                myLog.d("Recording isRecording >> " + String.valueOf(mainActivity.isRecording));
+                myLog.d("Recording isRecording >> " + String.valueOf(MainActivity.isRecording));
 
                 len_audioData = 0;
-                while(mainActivity.isRecording) {
+                while(MainActivity.isRecording) {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
-                    myQueue.enqueue(shortBuffer);  // shortBuffer -> queue
+                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
                 }
                 myLog.d("len_audioData Size >> " + String.valueOf(len_audioData));
-                // myQueue.enqueue(shortBuffer);  // shortBuffer -> queue
             }
         });
         recordThread.start();
     }
 
     public void stop() {
-        myLog.d("");
+        myLog.d("method activate");
 
         if (audioRecord != null && audioRecord.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
             if (audioRecord.getState() != android.media.AudioRecord.RECORDSTATE_STOPPED) {
@@ -87,19 +84,18 @@ public class AudioRecord {
 
                 audioRecord.release();
                 audioRecord = null;
-
                 recordThread = null;
             }
         }
     }
 
     public void release() {
-        myLog.d("");
+        myLog.d("method activate");
 
         audioData = null;
         shortBuffer = null;
 
-        myQueue.init();
-        myQueue = new Queue();
+        queue.init();
+        queue = new Queue();
     }
 }
