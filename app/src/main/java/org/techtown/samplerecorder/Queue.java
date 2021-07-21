@@ -10,6 +10,7 @@ public class Queue {
     public Queue() {
         myLog.d("constructor activate");
 
+        queue = null;
         queue = new LinkedList<ShortBuffer>();
     }
 
@@ -23,11 +24,5 @@ public class Queue {
         myLog.d("method activate");
 
         return queue.peek();
-    }
-
-    public void init() {
-        myLog.d("method activate");
-
-        queue = null;
     }
 }

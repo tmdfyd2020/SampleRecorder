@@ -97,7 +97,6 @@ public class AudioTrack {
         audioData = null;
         shortBuffer = null;
 
-        queue_fromRecord.init();
         queue_fromRecord = AudioRecord.queue;
     }
 }

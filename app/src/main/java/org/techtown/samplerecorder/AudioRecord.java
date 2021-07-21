@@ -30,8 +30,8 @@ public class AudioRecord {
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
         );
-
         audioData = new short[record_bufferSize];
+
         queue = new Queue();
     }
 
@@ -73,7 +73,7 @@ public class AudioRecord {
     public void stop() {
         myLog.d("method activate");
 
-        if (audioRecord != null && audioRecord.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
+        if (audioRecord != null) {
             if (audioRecord.getState() != android.media.AudioRecord.RECORDSTATE_STOPPED) {
                 try {
                     audioRecord.stop();
@@ -95,7 +95,6 @@ public class AudioRecord {
         audioData = null;
         shortBuffer = null;
 
-        queue.init();
         queue = new Queue();
     }
 }
