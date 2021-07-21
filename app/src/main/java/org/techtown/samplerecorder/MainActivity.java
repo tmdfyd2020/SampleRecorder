@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isRecording = true;
             startRecording();
         }
-    }
+    }  // --> Go to AudioRecord
 
     public void stopRecording() {
         myLog.d("method activate");
@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myAudioTrack.play();
             startPlaying();
         }
-    }
+    }  // --> Go to AudioTrack
 
     public void stopPlaying() {
         myLog.d("method activate");
@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTime = 0;
         totalTime = 0;
-    }
+    }  // --> Go to mylog
 
     Handler recordHandler = new Handler() {
         @Override

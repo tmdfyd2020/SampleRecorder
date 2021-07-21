@@ -24,5 +24,5 @@ public class Queue {
         myLog.d("method activate");
 
         return queue.peek();
-    }
+    }  // --> Go to AudioRecord
 }

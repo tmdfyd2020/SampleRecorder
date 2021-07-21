@@ -98,5 +98,5 @@ public class AudioTrack {
         shortBuffer = null;
 
         queue_fromRecord = AudioRecord.queue;
-    }
+    }  // --> Go to MainActivity
 }

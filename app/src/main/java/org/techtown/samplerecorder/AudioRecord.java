@@ -63,7 +63,7 @@ public class AudioRecord {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
                     queue.enqueue(shortBuffer);  // shortBuffer -> queue
-                }
+                }  // --> Go to Queue
                 myLog.d("len_audioData Size >> " + String.valueOf(len_audioData));
             }
         });
@@ -96,5 +96,5 @@ public class AudioRecord {
         shortBuffer = null;
 
         queue = new Queue();
-    }
+    }  // --> Go to MainActivity
 }
