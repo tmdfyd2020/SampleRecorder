@@ -11,10 +11,12 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -27,6 +29,10 @@ import android.widget.Toast;
 
 import com.google.android.material.resources.TextAppearance;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static int SampleRate = 16000;
@@ -36,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
 
-    private Button btn_record, btn_play, btn_setting, btn_exit;
+    private Button btn_record, btn_play, btn_setting, btn_filedrop, btn_exit;
     private ImageView img_recording;
     private TextView text_timer, text_samplingRate;
 
@@ -61,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_play.setOnClickListener(this);
         btn_setting = (Button) findViewById(R.id.btn_setting);
         btn_setting.setOnClickListener(this);
+        btn_filedrop = (Button) findViewById(R.id.btn_filedrop);
+        btn_filedrop.setOnClickListener(this);
         btn_exit = (Button) findViewById(R.id.btn_exit);
         btn_exit.setOnClickListener(this);
 
@@ -118,6 +126,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_setting:
                 setting();
                 break;
+            case R.id.btn_filedrop:
+                fileDrop();
+                break;
             case R.id.btn_exit:
                 exit();
                 break;
@@ -132,11 +143,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isRecording = false;  // anomaly : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // if "RECORD" button clicked,
-            myAudioRecord.start();
+            myAudioRecord.start(this);
             isRecording = true;
             startRecording();
         }
-    }  // --> Go to AudioRecord
+    }
 
     public void stopRecording() {
         myLog.d("method activate");
@@ -190,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myAudioTrack.play();
             startPlaying();
         }
-    }  // --> Go to AudioTrack
+    }
 
     public void stopPlaying() {
         myLog.d("method activate");
@@ -211,6 +222,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTime = SystemClock.elapsedRealtime();
         playHandler.sendEmptyMessage(0);
+    }
+
+    public void fileDrop() {
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            myLog.d("외부 저장소 사용이 가능합니다!");
+        }
+        else {
+            myLog.d("외부 저장소 사용이 불가능합니다..");
+            myLog.d(String.valueOf(Environment.getExternalStorageDirectory().getAbsolutePath()));
+        }
     }
 
     public void setting() {
@@ -277,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTime = 0;
         totalTime = 0;
-    }  // --> Go to mylog
+    }
 
     Handler recordHandler = new Handler() {
         @Override

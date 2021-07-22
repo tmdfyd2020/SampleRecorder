@@ -79,6 +79,17 @@
         app:layout_constraintTop_toBottomOf="@+id/btn_play" />
 
     <Button
+        android:id="@+id/btn_filedrop"
+        android:text="FILE DROP ON"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/btn_filedrop_active"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_setting" />
+
+    <Button
         android:id="@+id/btn_exit"
         android:text="EXIT"
         android:layout_width="200dp"
@@ -87,6 +98,6 @@
         android:background="@drawable/btn_exit_and_inactive"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_setting" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_filedrop" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

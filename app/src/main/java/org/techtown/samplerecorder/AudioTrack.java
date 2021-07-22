@@ -3,7 +3,7 @@ package org.techtown.samplerecorder;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 
-import java.nio.ShortBuffer;
+import java.nio.ByteBuffer;
 
 public class AudioTrack {
 
@@ -16,23 +16,23 @@ public class AudioTrack {
 
     private android.media.AudioTrack audioTrack = null;
     private Thread playThread = null;
-    private ShortBuffer shortBuffer;
-    private short[] audioData;
+    private ByteBuffer byteBuffer = null;
+    private byte[] audioData = null;
     private int capacity_buffer, track_bufferSize, len_audioData;
 
     public void init() {
         myLog.d("method activate");
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
-        shortBuffer = ShortBuffer.allocate(capacity_buffer);
+        byteBuffer = ByteBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT
-        );
+        ) * 2;
 
-        audioData = new short[track_bufferSize];
+        audioData = new byte[track_bufferSize];
         len_audioData = audioData.length;
 
         queue_fromRecord = AudioRecord.queue;
@@ -59,11 +59,11 @@ public class AudioTrack {
 
                 audioTrack.play();
 
-                shortBuffer = queue_fromRecord.dequeue();  // queue -> shortBuffer
-                shortBuffer.position(0);
+                byteBuffer = queue_fromRecord.dequeue();
+                byteBuffer.position(0);
 
                 while (MainActivity.isPlaying) {
-                    shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
+                    byteBuffer.get(audioData, 0, len_audioData);  // byteBuffer -> audioData
                     audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
                 }
             }
@@ -95,8 +95,8 @@ public class AudioTrack {
         myLog.d("method activate");
 
         audioData = null;
-        shortBuffer = null;
+        byteBuffer = null;
 
         queue_fromRecord = AudioRecord.queue;
-    }  // --> Go to MainActivity
+    }
 }
