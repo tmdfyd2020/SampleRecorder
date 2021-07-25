@@ -1,11 +1,5 @@
 package org.techtown.samplerecorder;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -16,7 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.Html;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -27,11 +20,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.resources.TextAppearance;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -83,25 +76,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void permissionCheck() {
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        int permission_record = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        int permission_read = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+        if (permission_record != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.RECORD_AUDIO},
                     101);
         }
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 101) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-            } else {
-                finish();
-            }
+        if (permission_read != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    102);
         }
     }
 
