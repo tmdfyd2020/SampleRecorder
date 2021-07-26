@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int tempRate = SampleRate, dialogIndex = 1;
     private boolean isRecorded = false;
 
+    Wavewave waves;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -135,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startRecording();
         }
     }
+    // TODO main에서 mediarecord를 새로 만들자. 그리고 Wavewave를 생성하는 것이 아니라, main에서 뷰를 직접 받아서 뷰를 건들여야 한다 ???
+    // 근데.. 뭐 미디어 레코드는 실행할 수 있다고 쳐보자.
 
     public void stopRecording() {
         myLog.d("method activate");

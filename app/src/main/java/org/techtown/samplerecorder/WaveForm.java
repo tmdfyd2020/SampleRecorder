@@ -21,7 +21,7 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
     int TimeDiv,MaxHeight, VRange;
     // AudioRecord로 부터 받은 데이터의 수
     int DataLength;
-    ShortBuffer Buffer,tempBuffer,ReadBuffer;
+    ShortBuffer Buffer, tempBuffer, ReadBuffer;
     SurfaceHolder mHolder;
 
     AudioRecord audioRecord;
@@ -37,7 +37,7 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
         init();
     }
 
-    public WaveForm(Context context) {
+    public WaveForm(Context context) {  // 도대체 이 context가 어떤 context를 말하는겅?
         super(context);
         init();
     }
@@ -51,8 +51,8 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
         canvas = holder.lockCanvas();
         drawBoard();
         holder.unlockCanvasAndPost(canvas);
-        audioRecord = new AudioRecord(this);
-        audioRecord.setBoardManager(this);
+        //audioRecord = new AudioRecord(this);
+        //audioRecord.setBoardManager(this);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
 
-    void init(){
+    public void init(){
         myLog.d("method activate");
         SurfaceHolder mHolder=getHolder();
         mHolder.addCallback(this);
@@ -78,7 +78,7 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
     }
 
     // 화면 크기 및 출력 지점 등의 좌표를 설정
-    void getScreenInfo(){
+    public void getScreenInfo(){
         myLog.d("method activate");
         // 화면의 크기를 얻어옴
         ScreenWidth = getWidth();
@@ -105,21 +105,25 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
         isData=false;
     }
 
-    void setData(ShortBuffer readBuffer, int dataLength){
+    public void setData(ShortBuffer readBuffer, int dataLength){
         myLog.d("method activate");
-        this.ReadBuffer=readBuffer;
-        this.DataLength=dataLength;
+        this.ReadBuffer = readBuffer;
+        myLog.d(String.valueOf(readBuffer));
+        this.DataLength = dataLength;
 
-        canvas=mHolder.lockCanvas();
+        canvas = mHolder.lockCanvas();  // 이젠 여기에서 걸림
         drawBoard();
         drawData();
         mHolder.unlockCanvasAndPost(canvas);
-        isData=true;
+        isData = true;
+
+        // 여기에 있는 무언가를 실행해서 null 포인터인것이 아닌것 같다.
+        // 그냥 저쪽에서 문제인듯
     }
 
-    void drawBoard(){
+    public void drawBoard(){
         myLog.d("method activate");
-        Paint paint=new Paint();
+        Paint paint = new Paint();
 
         //배경화면 힌색으로
         paint.setColor(Color.WHITE);
@@ -141,7 +145,7 @@ public class WaveForm extends SurfaceView implements SurfaceHolder.Callback{
 
     }
 
-    void drawData(){
+    public void drawData(){
         myLog.d("method activate");
         double data, Stime, Ttime;
         int x, y, i;

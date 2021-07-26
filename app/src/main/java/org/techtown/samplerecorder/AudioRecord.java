@@ -9,12 +9,14 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.util.AttributeSet;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.text.AttributedCharacterIterator;
 
 public class AudioRecord {
 
@@ -26,6 +28,7 @@ public class AudioRecord {
 
     private android.media.AudioRecord audioRecord = null;
     public Thread recordThread = null;
+    public Thread recordThread2 = null;
     private ByteBuffer byteBuffer = null;
     private ShortBuffer shortBuffer = null;
     private byte[] audioData = null;
@@ -33,17 +36,23 @@ public class AudioRecord {
     private int capacity_buffer, record_bufferSize, len_audioData;
 
     ContentValues contentValues;
+    ContentValues contentValues2;
     ContentResolver contentResolver;
     Uri audioUri;
+    Uri audioUri2;
     FileOutputStream fos;
     ParcelFileDescriptor pdf;
+    ParcelFileDescriptor pdf2;
 
-    WaveForm waveForm;
+    Wavewave wavewave;
+
+    MediaRecorder mediaRecorder = null;
 
     public AudioRecord() {
 
     }
 
+    /*
     public AudioRecord(WaveForm waveForm) {
         this.waveForm = waveForm;
     }
@@ -51,6 +60,8 @@ public class AudioRecord {
     public void setBoardManager(WaveForm waveForm){
         this.waveForm = waveForm;
     }
+
+     */
 
     public void init() {
         myLog.d("method activate");
@@ -66,6 +77,7 @@ public class AudioRecord {
         ) * 2;
         // audioData = new byte[record_bufferSize];
         audioData2 = new short[record_bufferSize];
+
         queue = new Queue();
     }
 
@@ -86,8 +98,8 @@ public class AudioRecord {
         audioRecord.startRecording();
 
         contentValues = new ContentValues();
-        // 파일 이름 저장할 때 현재 날짜, 시각 받아서 String 형식 받아서 출력
-        contentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, "test.pcm");
+        // TODO 파일 이름 저장할 때 현재 날짜, 시각 받아서 String 형식 받아서 출력
+        contentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, "test222.pcm");
         contentValues.put(MediaStore.Audio.Media.MIME_TYPE, "audio/*");
         contentValues.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/MZ/");
         contentValues.put(MediaStore.Audio.Media.IS_PENDING, 1);
@@ -99,6 +111,35 @@ public class AudioRecord {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+        if(mediaRecorder == null) {
+            mediaRecorder = new MediaRecorder();
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setOutputFile(pdf.getFileDescriptor());
+        }
+
+        try {
+            mediaRecorder.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        recordThread2 = new Thread(new Runnable() {  // 스레드 문제는 아님, 아까 해봤는데 스레드 2개 돌릴 떄 잘 돌아감.
+            @Override
+            public void run() {
+                while(MainActivity.isRecording) {
+
+                    mediaRecorder.start();  // 코틀린 파일 잘 넘어가는데 여기서 문제가 생긴다..
+                    wavewave.addAmplitude((float)mediaRecorder.getMaxAmplitude());
+
+                    myLog.d("두 번째 스레드가 동작했음 ");
+                }
+            }
+        });
+        recordThread2.start();
 
         recordThread = new Thread(new Runnable() {
             @Override
@@ -115,24 +156,44 @@ public class AudioRecord {
                     //len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     //byteBuffer.put(audioData, 0, len_audioData);  // audioData -> byteBuffer
                     //queue.enqueue(byteBuffer);  // byteBuffer -> queue
-                    shortBuffer.position(0);
                     len_audioData = audioRecord.read(audioData2, 0, record_bufferSize);  // audioRecord -> audioData
-                    shortBuffer.put(audioData2, 0, len_audioData);  // audioData -> byteBuffer
-                    waveForm.setData(shortBuffer, len_audioData);  // Null Pointer
+                    shortBuffer.put(audioData2, 0, len_audioData);  // audioData -> ShortBuffer
+
+                    /*
+                    float sDataMax = 0;
+                    for(int i = 0; i < audioData2.length; i++) {
+                        if (Math.abs(audioData2[i]) >= sDataMax) {
+                            sDataMax = Math.abs(audioData2[i]);
+                            wave.addAmplitude(sDataMax);
+                        }
+                    }
+                     */
+
+                    /*
+                    if (shortBuffer != null) {
+                        myLog.d("shortBuffer가 null은 아닌 상황");  // shortbuffer가 null은 아닌 상황이다.
+                        //waveForm.setData(shortBuffer, len_audioData);  // 도대체 뭐 때문에 nullpointer가 걸리는거지?
+                    }
+                     */
 
                     queue.enqueue(shortBuffer);  // byteBuffer -> queue
-
+                    /*
                     try {
                         fos.write(short2byte(audioData2));  // 이대로 쓰니까 pcm 파일이 저장된다.
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
+                     */
                 }
 
                 myLog.d("len_audioData Size >> " + String.valueOf(len_audioData));
             }
         });
         recordThread.start();
+
+
+
     }
 
     private byte[] short2byte(short[] sData) {
@@ -142,17 +203,11 @@ public class AudioRecord {
         byte[] bytes = new byte[shortArrsize * 2];
 
         for (int i = 0; i < shortArrsize; i++) {
-
             bytes[i * 2] = (byte) (sData[i] & 0x00FF);
-
             bytes[(i * 2) + 1] = (byte) (sData[i] >> 8);
-
             sData[i] = 0;
-
         }
-
         return bytes;
-
     }
 
     public void writeWaveFileHeader(FileOutputStream out, long totalAudioLen,
@@ -230,6 +285,9 @@ public class AudioRecord {
                 audioRecord.release();
                 audioRecord = null;
                 recordThread = null;
+
+                mediaRecorder.stop();
+                recordThread2 = null;
             }
         }
 
