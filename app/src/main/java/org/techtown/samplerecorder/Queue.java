@@ -1,26 +1,26 @@
 package org.techtown.samplerecorder;
 
-import java.nio.ShortBuffer;
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
 public class Queue {
 
-    java.util.Queue<ShortBuffer> queue;
+    java.util.Queue<ByteBuffer> queue;
 
     public Queue() {
         myLog.d("constructor activate");
 
         queue = null;
-        queue = new LinkedList<ShortBuffer>();
+        queue = new LinkedList<ByteBuffer>();
     }
 
-    public void enqueue(ShortBuffer shortBuffer) {
+    public void enqueue(ByteBuffer byteBuffer) {
         myLog.d("method activate");
 
-        queue.add(shortBuffer);
+        queue.add(byteBuffer);
     }
 
-    public ShortBuffer dequeue() {
+    public ByteBuffer dequeue() {
         myLog.d("method activate");
 
         return queue.peek();

@@ -4,7 +4,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 
 public class AudioTrack {
 
@@ -18,17 +17,14 @@ public class AudioTrack {
     private android.media.AudioTrack audioTrack = null;
     private Thread playThread = null;
     private ByteBuffer byteBuffer = null;
-    private ShortBuffer shortBuffer = null;
     private byte[] audioData = null;
-    private short[] audioData2 = null;
     private int capacity_buffer, track_bufferSize, len_audioData;
 
     public void init() {
         myLog.d("method activate");
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
-        // byteBuffer = ByteBuffer.allocate(capacity_buffer);
-        shortBuffer = shortBuffer.allocate(capacity_buffer);
+        byteBuffer = ByteBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
@@ -37,7 +33,6 @@ public class AudioTrack {
         ) * 2;
 
         audioData = new byte[track_bufferSize];
-        audioData2 = new short[track_bufferSize];
         len_audioData = audioData.length;
 
         queue_fromRecord = AudioRecord.queue;
@@ -53,7 +48,7 @@ public class AudioTrack {
                     MainActivity.SampleRate,
                     CHANNEL_CONFIG,
                     AUDIO_FORMAT,
-                    audioData2.length,
+                    audioData.length,
                     MODE
             );
         }
@@ -64,14 +59,12 @@ public class AudioTrack {
 
                 audioTrack.play();
 
-                // byteBuffer = queue_fromRecord.dequeue();
-                // byteBuffer.position(0);
-                shortBuffer = queue_fromRecord.dequeue();
-                shortBuffer.position(0);
+                byteBuffer = queue_fromRecord.dequeue();
+                byteBuffer.position(0);
 
                 while (MainActivity.isPlaying) {
-                    shortBuffer.get(audioData2, 0, len_audioData);  // byteBuffer -> audioData
-                    audioTrack.write(audioData2, 0, len_audioData);  // audioData -> audioTrack
+                    byteBuffer.get(audioData, 0, len_audioData);  // byteBuffer -> audioData
+                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
                 }
             }
 

@@ -2,13 +2,19 @@ package org.techtown.samplerecorder;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.View;
@@ -26,6 +32,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.visualizer.amplitude.AudioRecordView;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static int SampleRate = 16000;
@@ -35,15 +48,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
 
-    private Button btn_record, btn_play, btn_setting, btn_filedrop, btn_exit;
+    private MediaRecorder mediaRecorder = null;
+    private Thread mediaThread = null;
+    private ContentValues contentValues;
+    private ContentResolver contentResolver;
+    private Uri audioUri;
+    private ParcelFileDescriptor pdf;
+    private AudioRecordView view;
+    private int currentMaxAmplitude;
+
+    private Button btn_record, btn_play, btn_setting, btn_fileDrop, btn_exit;
     private ImageView img_recording;
     private TextView text_timer, text_samplingRate;
 
     private long startTime, totalTime;
     private int tempRate = SampleRate, dialogIndex = 1;
     private boolean isRecorded = false;
-
-    Wavewave waves;
+    private boolean fileDrop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         permissionCheck();
 
         img_recording = (ImageView) findViewById(R.id.img_recording);
+        view = findViewById(R.id.view_recordFFT);
         text_timer = (TextView) findViewById(R.id.text_timer);
         text_samplingRate = (TextView) findViewById(R.id.text_samplingRate);
 
@@ -62,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_play.setOnClickListener(this);
         btn_setting = (Button) findViewById(R.id.btn_setting);
         btn_setting.setOnClickListener(this);
-        btn_filedrop = (Button) findViewById(R.id.btn_filedrop);
-        btn_filedrop.setOnClickListener(this);
+        btn_fileDrop = (Button) findViewById(R.id.btn_fileDrop);
+        btn_fileDrop.setOnClickListener(this);
         btn_exit = (Button) findViewById(R.id.btn_exit);
         btn_exit.setOnClickListener(this);
 
@@ -75,6 +97,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn_play.setEnabled(false);
         btn_exit.setEnabled(false);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
+        fileDrop = sharedPreferences.getBoolean("fileState", true);
+        if(fileDrop == true) {
+            btn_fileDrop.setText("FILE DROP ON");
+            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
+        }
+        else {
+            btn_fileDrop.setText("FILE DROP OFF");
+            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
+        }
     }
 
     public void permissionCheck() {
@@ -115,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_setting:
                 setting();
                 break;
-            case R.id.btn_filedrop:
+            case R.id.btn_fileDrop:
                 fileDrop();
                 break;
             case R.id.btn_exit:
@@ -137,8 +170,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startRecording();
         }
     }
-    // TODO main에서 mediarecord를 새로 만들자. 그리고 Wavewave를 생성하는 것이 아니라, main에서 뷰를 직접 받아서 뷰를 건들여야 한다 ???
-    // 근데.. 뭐 미디어 레코드는 실행할 수 있다고 쳐보자.
 
     public void stopRecording() {
         myLog.d("method activate");
@@ -154,6 +185,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long stopTime = SystemClock.elapsedRealtime();
         totalTime = stopTime - startTime;
         recordHandler.removeMessages(0);
+
+        mediaRecorder.stop();
+        mediaRecorder.release();
+        mediaRecorder = null;
+        mediaThread = null;
+
+        contentValues.clear();
+        contentValues.put(MediaStore.Audio.Media.IS_PENDING, 0);
+        contentResolver.update(audioUri, contentValues, null, null);
+
+        if (fileDrop == false) {
+            contentResolver.delete(audioUri, null, null);
+        }
     }
 
     public void startRecording() {
@@ -178,6 +222,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         animation.setRepeatCount(Animation.INFINITE);
         animation.setRepeatMode(Animation.REVERSE);
         img_recording.startAnimation(animation);
+
+        mediaRecord();  // MediaRecorder for using visualizer and save with wav and mp3
+    }
+
+    public void mediaRecord() {
+        myLog.d("method activate");
+
+        contentValues = new ContentValues();
+        contentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, fileName(System.currentTimeMillis()));
+        contentValues.put(MediaStore.Audio.Media.MIME_TYPE, "audio/*");
+        contentValues.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/MZ/");
+        contentValues.put(MediaStore.Audio.Media.IS_PENDING, 1);
+
+        contentResolver = getApplicationContext().getContentResolver();
+        audioUri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);  // 파일 생성
+
+        try {
+            pdf = contentResolver.openFileDescriptor(audioUri, "w", null);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        /**
+         * To use AudioRecord file saving, add
+         *   fos = new FileOutputStream(pdf.getFileDescriptor());
+         *   try {
+         *       fos.write(short2byte(audioData));
+         *   } catch (IOException e) {
+         *       e.printStackTrace();
+         *   }
+
+         * To access saved files, add
+         *  Cursor cursor = contentResolver.query(Uri.parse(String.valueOf(audioUri)), null, null, null, null);
+         *  cursor.moveToNext();
+         *  String absolutePath = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+
+         */
+
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setOutputFile(pdf.getFileDescriptor());
+
+        try {
+            mediaRecorder.prepare();  // 다시 재생할 때 IllegalException
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mediaRecorder.start();
+        mediaThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(isRecording) {
+                    currentMaxAmplitude = mediaRecorder.getMaxAmplitude();
+                    view.update(currentMaxAmplitude);
+                }
+            }
+        });
+        mediaThread.start();
+    }
+
+    public String fileName(long realtime) {
+        Date date = new Date(realtime);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd  HH시 mm분 ss초");
+        return dateFormat.format(date) + ".wav";
     }
 
     public void play() {
@@ -213,15 +324,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTime = SystemClock.elapsedRealtime();
         playHandler.sendEmptyMessage(0);
+
     }
 
     public void fileDrop() {
-        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            myLog.d("외부 저장소 사용이 가능합니다!");
+        SharedPreferences sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        if(fileDrop == true) {
+            fileDrop = false;
+            editor.putBoolean("fileState", fileDrop);
+            editor.commit();
+            btn_fileDrop.setText("FILE DROP OFF");
+            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
         }
         else {
-            myLog.d("외부 저장소 사용이 불가능합니다..");
-            myLog.d(String.valueOf(Environment.getExternalStorageDirectory().getAbsolutePath()));
+            fileDrop = true;
+            editor.putBoolean("fileState", fileDrop);
+            editor.commit();
+            btn_fileDrop.setText("FILE DROP ON");
+            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
         }
     }
 
@@ -282,6 +404,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_setting.setEnabled(true);
         btn_exit.setEnabled(false);
         text_timer.setVisibility(View.INVISIBLE);
+
+        view.recreate();
 
         SampleRate = tempRate;
         allInit();
