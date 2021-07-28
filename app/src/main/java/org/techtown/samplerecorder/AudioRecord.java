@@ -4,7 +4,15 @@ import android.content.Context;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AudioRecord {
 
@@ -13,18 +21,21 @@ public class AudioRecord {
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
     public static Queue queue;
+    public static int dataMax;
 
     private android.media.AudioRecord audioRecord = null;
     public Thread recordThread = null;
-    private ByteBuffer byteBuffer = null;
-    private byte[] audioData = null;
+    private ShortBuffer shortBuffer = null;
+    private short[] audioData = null;
     private int capacity_buffer, record_bufferSize, len_audioData;
+
+    FileOutputStream outputStream;
 
     public void init() {
         myLog.d("method activate");
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
-        byteBuffer = ByteBuffer.allocate(capacity_buffer);
+        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
@@ -32,7 +43,7 @@ public class AudioRecord {
                 AUDIO_FORMAT
         ) * 2;
 
-        audioData = new byte[record_bufferSize];
+        audioData = new short[record_bufferSize];
         queue = new Queue();
     }
 
@@ -50,21 +61,52 @@ public class AudioRecord {
             );
         }
 
+        if(MainActivity.fileDrop) {
+            File file = new File("/mnt/sdcard/audioDrop/", fileName(System.currentTimeMillis()));
+            outputStream = null;
+
+            try {
+                outputStream = new FileOutputStream(file); // fileName is path to a file, where audio data should be written
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
         audioRecord.startRecording();
 
         recordThread = new Thread(new Runnable() {
             @Override
             public void run() {
 
-                byteBuffer.rewind();
+                shortBuffer.rewind();
                 myLog.d("Recording isRecording >> " + String.valueOf(MainActivity.isRecording));
 
                 len_audioData = 0;
                 while(MainActivity.isRecording) {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
-                    byteBuffer.put(audioData, 0, len_audioData);  // audioData -> byteBuffer
-                    queue.enqueue(byteBuffer);  // byteBuffer -> queue
+                    shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
+                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
+
+                    if (MainActivity.fileDrop) {
+                        try {
+                            outputStream.write(short2byte(audioData), 0, len_audioData);
+                        } catch (IOException e) {
+                            myLog.d("exception while writing to file");
+                            e.printStackTrace();
+                        }
+                    }
+
+                    dataMax = 0;
+
+                    for(int i = 0; i < audioData.length; i++){
+                        if(Math.abs(audioData[i]) >= dataMax) {
+                            dataMax = Math.abs(audioData[i]);
+                        }
+                    }
+                    MainActivity.view.update(dataMax);  // 속도가 왜 느릴까?
+
                 }
+
                 myLog.d("len_audioData Size >> " + String.valueOf(len_audioData));
             }
         });
@@ -87,22 +129,38 @@ public class AudioRecord {
                 recordThread = null;
             }
         }
+
+        if (MainActivity.fileDrop) {
+            try {
+                outputStream.flush();
+                outputStream.close();
+            } catch (IOException e) {
+                myLog.d("exception while closing output stream " + e.toString());
+                e.printStackTrace();
+            }
+        }
+
+        MainActivity.view.recreate();
     }
 
     public void release() {
         myLog.d("method activate");
 
         audioData = null;
-        byteBuffer = null;
+        shortBuffer = null;
 
         queue = new Queue();
     }
 
-    /*
+    public String fileName(long realtime) {
+        Date date = new Date(realtime);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd_HH_mm_ss");
+        return dateFormat.format(date) + ".pcm";
+    }
+
     private byte[] short2byte(short[] sData) {
 
         int shortArrsize = sData.length;
-
         byte[] bytes = new byte[shortArrsize * 2];
 
         for (int i = 0; i < shortArrsize; i++) {
@@ -112,6 +170,21 @@ public class AudioRecord {
         }
         return bytes;
     }
+
+    /**
+     * Short array to Byte array Functions
+        private byte[] short2byte(short[] sData) {
+
+            int shortArrsize = sData.length;
+            byte[] bytes = new byte[shortArrsize * 2];
+
+            for (int i = 0; i < shortArrsize; i++) {
+                bytes[i * 2] = (byte) (sData[i] & 0x00FF);
+                bytes[(i * 2) + 1] = (byte) (sData[i] >> 8);
+                sData[i] = 0;
+            }
+            return bytes;
+        }
     */
 
 }

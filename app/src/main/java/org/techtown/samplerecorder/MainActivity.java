@@ -34,6 +34,7 @@ import androidx.core.content.ContextCompat;
 
 import com.visualizer.amplitude.AudioRecordView;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -44,18 +45,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static int SampleRate = 16000;
     public static boolean isRecording = false;
     public static boolean isPlaying = false;
+    public static boolean fileDrop;
+    public static AudioRecordView view;
 
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
-
-    private MediaRecorder mediaRecorder = null;
-    private Thread mediaThread = null;
-    private ContentValues contentValues;
-    private ContentResolver contentResolver;
-    private Uri audioUri;
-    private ParcelFileDescriptor pdf;
-    private AudioRecordView view;
-    private int currentMaxAmplitude;
 
     private Button btn_record, btn_play, btn_setting, btn_fileDrop, btn_exit;
     private ImageView img_recording;
@@ -64,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private long startTime, totalTime;
     private int tempRate = SampleRate, dialogIndex = 1;
     private boolean isRecorded = false;
-    private boolean fileDrop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +65,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         permissionCheck();
+        init();
+    }
 
+    public void init() {
         img_recording = (ImageView) findViewById(R.id.img_recording);
         view = findViewById(R.id.view_recordFFT);
         text_timer = (TextView) findViewById(R.id.text_timer);
@@ -96,10 +92,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myAudioTrack.init();
 
         btn_play.setEnabled(false);
-        btn_exit.setEnabled(false);
 
         SharedPreferences sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
         fileDrop = sharedPreferences.getBoolean("fileState", true);
+
         if(fileDrop == true) {
             btn_fileDrop.setText("FILE DROP ON");
             btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
@@ -112,23 +108,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void permissionCheck() {
         int permission_record = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        int permission_read = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        int permission_readStore = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        int permission_writeStore = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-        if (permission_record != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.RECORD_AUDIO},
-                    101);
-        }
+            if (permission_record != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO},
+                        101);
+            }
 
-        if (permission_read != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    102);
-        }
+            if (permission_readStore != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        102);
+            }
+
+            if (permission_writeStore != PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        103);
+            }
     }
 
     public void allInit() {
         myLog.d("method activate");
+
         myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
         myAudioRecord.init();
 
@@ -165,6 +169,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isRecording = false;  // anomaly : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // if "RECORD" button clicked,
+            myAudioRecord.release();
+            allInit();
             myAudioRecord.start(this);
             isRecording = true;
             startRecording();
@@ -175,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myLog.d("method activate");
 
         btn_record.setText("Record");
-        btn_record.setEnabled(false);
+        btn_record.setEnabled(true);
         btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
         btn_play.setEnabled(true);
         btn_setting.setEnabled(true);
@@ -186,22 +192,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         totalTime = stopTime - startTime;
         recordHandler.removeMessages(0);
 
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
-        mediaThread = null;
-
-        contentValues.clear();
-        contentValues.put(MediaStore.Audio.Media.IS_PENDING, 0);
-        contentResolver.update(audioUri, contentValues, null, null);
-
-        if (fileDrop == false) {
-            contentResolver.delete(audioUri, null, null);
-        }
+        SampleRate = tempRate;
+        isRecorded = true;  // using separate dialog settings
     }
 
     public void startRecording() {
         myLog.d("method activate");
+
+        myAudioTrack.release();
+
+        startTime = 0;
+        totalTime = 0;
 
         btn_record.setText("Stop");
         btn_record.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
@@ -213,8 +214,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startTime = SystemClock.elapsedRealtime();
         recordHandler.sendEmptyMessage(0);
 
-        isRecorded = true;  // using separate dialog settings
-
         // animation set at recording image emerge
         Animation animation = new AlphaAnimation(1, 0);
         animation.setDuration(500);
@@ -223,73 +222,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         animation.setRepeatMode(Animation.REVERSE);
         img_recording.startAnimation(animation);
 
-        mediaRecord();  // MediaRecorder for using visualizer and save with wav and mp3
     }
 
-    public void mediaRecord() {
-        myLog.d("method activate");
-
-        contentValues = new ContentValues();
-        contentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, fileName(System.currentTimeMillis()));
-        contentValues.put(MediaStore.Audio.Media.MIME_TYPE, "audio/*");
-        contentValues.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/MZ/");
-        contentValues.put(MediaStore.Audio.Media.IS_PENDING, 1);
-
-        contentResolver = getApplicationContext().getContentResolver();
-        audioUri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);  // 파일 생성
-
-        try {
-            pdf = contentResolver.openFileDescriptor(audioUri, "w", null);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        /**
-         * To use AudioRecord file saving, add
-         *   fos = new FileOutputStream(pdf.getFileDescriptor());
-         *   try {
-         *       fos.write(short2byte(audioData));
-         *   } catch (IOException e) {
-         *       e.printStackTrace();
-         *   }
-
-         * To access saved files, add
-         *  Cursor cursor = contentResolver.query(Uri.parse(String.valueOf(audioUri)), null, null, null, null);
-         *  cursor.moveToNext();
-         *  String absolutePath = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
-
-         */
-
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(pdf.getFileDescriptor());
-
-        try {
-            mediaRecorder.prepare();  // 다시 재생할 때 IllegalException
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mediaRecorder.start();
-        mediaThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(isRecording) {
-                    currentMaxAmplitude = mediaRecorder.getMaxAmplitude();
-                    view.update(currentMaxAmplitude);
-                }
-            }
-        });
-        mediaThread.start();
-    }
-
-    public String fileName(long realtime) {
-        Date date = new Date(realtime);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd  HH시 mm분 ss초");
-        return dateFormat.format(date) + ".wav";
-    }
+    // TODO AudioTrack release는 언제할 수 있는가?
 
     public void play() {
         myLog.d("method activate");
@@ -308,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopPlaying() {
         myLog.d("method activate");
 
+        btn_record.setEnabled(true);
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
         btn_setting.setEnabled(true);
@@ -318,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void startPlaying() {
         myLog.d("method activate");
 
+        btn_record.setEnabled(false);
         btn_play.setText("Stop");
         btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
         btn_setting.setEnabled(false);
@@ -368,14 +305,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (isRecorded == false) {  // start record with changed sample rate,
-                    SampleRate = tempRate;
-                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
-                    allInit();
-                } else {  // start play with changed sample rate,
-                    SampleRate = tempRate;
-                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
-                }
+//                if (isRecorded == false) {  // start record with changed sample rate,
+//                    SampleRate = tempRate;
+//                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
+//                    allInit();
+//                } else {  // start play with changed sample rate,
+//                    SampleRate = tempRate;
+//                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
+//                }
+                SampleRate = tempRate;
+                text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
                 Toast.makeText(MainActivity.this, Integer.toString(SampleRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
             }
         });
@@ -386,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
         });
+
         Dialog dialog = builder.create();
         dialog.getWindow().setGravity(Gravity.CENTER);
         dialog.show();
@@ -394,25 +334,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void exit() {
         myLog.d("method activate");
 
-        myAudioRecord.release();
-        myAudioTrack.release();
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
+        builder.setTitle("Exit");
+        builder.setMessage("Are you sure you want to quit?")
+                .setCancelable(false)
+                .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Yes</font>"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        finish();
+                    }
+                })
+                .setNegativeButton(Html.fromHtml("<font color='#F06292'>No</font>"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int i) {
+                        dialog.cancel();
+                    }
+                });
 
-        btn_record.setEnabled(true);
-        btn_play.setEnabled(false);
-        btn_play.setText("Play");
-        btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
-        btn_setting.setEnabled(true);
-        btn_exit.setEnabled(false);
-        text_timer.setVisibility(View.INVISIBLE);
-
-        view.recreate();
-
-        SampleRate = tempRate;
-        allInit();
-        isRecorded = false;
-
-        startTime = 0;
-        totalTime = 0;
+        Dialog dialog = builder.create();
+        dialog.getWindow().setGravity(Gravity.CENTER);
+        dialog.show();
     }
 
     Handler recordHandler = new Handler() {

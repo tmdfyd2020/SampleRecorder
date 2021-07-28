@@ -3,28 +3,30 @@ package org.techtown.samplerecorder;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 
 public class AudioTrack {
 
     private final int STREAM_TYPE = AudioManager.STREAM_MUSIC;
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_OUT_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
-    private final int MODE = android.media.AudioTrack.MODE_STREAM;
+    private final int MODE = android.media.AudioTrack.MODE_STREAM;  // MODE_STREAM
 
     private Queue queue_fromRecord;
 
     private android.media.AudioTrack audioTrack = null;
     private Thread playThread = null;
-    private ByteBuffer byteBuffer = null;
-    private byte[] audioData = null;
+    private ShortBuffer shortBuffer = null;
+    private short[] audioData = null;
     private int capacity_buffer, track_bufferSize, len_audioData;
 
     public void init() {
         myLog.d("method activate");
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
-        byteBuffer = ByteBuffer.allocate(capacity_buffer);
+        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
@@ -32,7 +34,7 @@ public class AudioTrack {
                 AUDIO_FORMAT
         ) * 2;
 
-        audioData = new byte[track_bufferSize];
+        audioData = new short[track_bufferSize];
         len_audioData = audioData.length;
 
         queue_fromRecord = AudioRecord.queue;
@@ -58,14 +60,25 @@ public class AudioTrack {
             public void run() {
 
                 audioTrack.play();
+                audioTrack.flush();
 
-                byteBuffer = queue_fromRecord.dequeue();
-                byteBuffer.position(0);
+                shortBuffer = queue_fromRecord.dequeue();
+                shortBuffer.position(0);
 
-                while (MainActivity.isPlaying) {
-                    byteBuffer.get(audioData, 0, len_audioData);  // byteBuffer -> audioData
+                while(MainActivity.isPlaying) {
+                    shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
                     audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
+
+                    if (shortBuffer.position() == shortBuffer.limit()) {
+                        myLog.d("버퍼 모두 소진 @@@@@@@@@@@@@@@@@@@@@@");
+                    }
+
                 }
+
+//                audioTrack.stop();
+//                audioTrack.release();
+//                audioTrack = null;
+
             }
 
         });
@@ -93,9 +106,6 @@ public class AudioTrack {
 
     public void release() {
         myLog.d("method activate");
-
-        audioData = null;
-        byteBuffer = null;
 
         queue_fromRecord = AudioRecord.queue;
     }
