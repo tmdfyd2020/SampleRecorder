@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static boolean isRecording = false;
     public static boolean isPlaying = false;
     public static boolean fileDrop;
+    public static boolean autoStop = false;
     public static AudioRecordView view;
 
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
@@ -57,7 +58,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private long startTime, totalTime;
     private int tempRate = SampleRate, dialogIndex = 1;
-    private boolean isRecorded = false;
+
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +96,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn_play.setEnabled(false);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
+        editor = sharedPreferences.edit();
         fileDrop = sharedPreferences.getBoolean("fileState", true);
 
         if(fileDrop == true) {
@@ -193,7 +197,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recordHandler.removeMessages(0);
 
         SampleRate = tempRate;
-        isRecorded = true;  // using separate dialog settings
     }
 
     public void startRecording() {
@@ -223,8 +226,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_recording.startAnimation(animation);
 
     }
-
-    // TODO AudioTrack release는 언제할 수 있는가?
 
     public void play() {
         myLog.d("method activate");
@@ -265,22 +266,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void fileDrop() {
-        SharedPreferences sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        if(fileDrop == true) {
+        if(fileDrop == true) {  // fileDrop ON -> OFF
             fileDrop = false;
             editor.putBoolean("fileState", fileDrop);
             editor.commit();
             btn_fileDrop.setText("FILE DROP OFF");
             btn_fileDrop.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
+            view.recreate();
         }
-        else {
+        else {  // fileDrop OFF -> ON
             fileDrop = true;
             editor.putBoolean("fileState", fileDrop);
             editor.commit();
             btn_fileDrop.setText("FILE DROP ON");
             btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
+            view.recreate();
         }
     }
 
@@ -297,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 dialogIndex = which;
                 if (freqArray[which].equals("8,000")) {
                     tempRate = 8000;
-                } else {
+                } else if (freqArray[which].equals("16,000")) {
                     tempRate = 16000;
                 }
             }
@@ -305,14 +306,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-//                if (isRecorded == false) {  // start record with changed sample rate,
-//                    SampleRate = tempRate;
-//                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
-//                    allInit();
-//                } else {  // start play with changed sample rate,
-//                    SampleRate = tempRate;
-//                    text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
-//                }
                 SampleRate = tempRate;
                 text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
                 Toast.makeText(MainActivity.this, Integer.toString(SampleRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -381,6 +374,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void handleMessage(@NonNull Message msg) {
             text_timer.setText(getPlayTime());
+
+            if (autoStop) {
+                isPlaying = false;
+                myAudioTrack.stop();
+                stopPlaying();
+                autoStop = false;
+            }
+
             playHandler.sendEmptyMessage(0);
         }
     };

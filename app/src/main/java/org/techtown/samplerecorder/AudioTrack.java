@@ -60,25 +60,20 @@ public class AudioTrack {
             public void run() {
 
                 audioTrack.play();
-                audioTrack.flush();
 
                 shortBuffer = queue_fromRecord.dequeue();
                 shortBuffer.position(0);
 
+                int len_write;
                 while(MainActivity.isPlaying) {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
-                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
+                    len_write = audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
 
-                    if (shortBuffer.position() == shortBuffer.limit()) {
-                        myLog.d("버퍼 모두 소진 @@@@@@@@@@@@@@@@@@@@@@");
+                    if (len_write == len_audioData && audioData[audioData.length - 1] == AudioRecord.index) {
+                        MainActivity.autoStop = true;
+                        break;
                     }
-
                 }
-
-//                audioTrack.stop();
-//                audioTrack.release();
-//                audioTrack = null;
-
             }
 
         });
