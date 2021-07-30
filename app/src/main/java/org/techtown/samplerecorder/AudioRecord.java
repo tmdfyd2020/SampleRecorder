@@ -21,24 +21,26 @@ import java.util.Date;
 
 public class AudioRecord {
 
-    private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
+    private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;  // AudioSource.MIC
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
     public static Queue queue;
-    public static int dataMax;
     public static short index;
 
     private android.media.AudioRecord audioRecord = null;
-    public Thread recordThread = null;
+    private Thread recordThread = null;
     private ShortBuffer shortBuffer = null;
-    private short[] audioData = null;
-    private int capacity_buffer, record_bufferSize, len_audioData;
     private FileOutputStream outputStream;
     private File file;
+    private short[] audioData = null;
+    private int capacity_buffer, record_bufferSize, len_audioData, dataMax;
 
     public void init() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
+
+        audioData = null;
+        shortBuffer = null;
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
@@ -46,16 +48,15 @@ public class AudioRecord {
         record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
                 CHANNEL_CONFIG,
-                AUDIO_FORMAT
-        ) * 2;
-
+                AUDIO_FORMAT ) * 2;
         audioData = new short[record_bufferSize];
+
         queue = new Queue();
     }
 
-    public void start(Context context) {
-        myLog.d("method activate");
-        myLog.d("Recording Sample Rate : " + String.valueOf(MainActivity.SampleRate));
+    public void start() {
+//        myLog.d("method activate");
+//        myLog.d("Recording Sample Rate : " + String.valueOf(MainActivity.SampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
@@ -100,13 +101,13 @@ public class AudioRecord {
                     queue.enqueue(shortBuffer);  // shortBuffer -> queue
 
                     dataMax = 0;
-                    for(int i = 0; i < audioData.length; i++){
+                    for (int i = 0; i < audioData.length; i++) {
                         if(Math.abs(audioData[i]) >= dataMax) {
                             dataMax = Math.abs(audioData[i]);
                         }
                     }
 
-                    if (MainActivity.fileDrop) {  // 이 부분이 dataMax 반복문 위로 가면 view 출력이 안되고, 아래로 오면 됨
+                    if (MainActivity.fileDrop) {  // why? 해당 부분 dataMax 반복문 위로 가면 view 출력이 안됨
                         try {
                             outputStream.write(shortToByte_1(audioData), 0, len_audioData);
                         } catch (IOException e) {
@@ -124,7 +125,7 @@ public class AudioRecord {
     }
 
     public void stop() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         if (audioRecord != null) {
             if (audioRecord.getState() != android.media.AudioRecord.RECORDSTATE_STOPPED) {
@@ -139,6 +140,10 @@ public class AudioRecord {
                 recordThread = null;
             }
         }
+    }
+
+    public void release() {
+//        myLog.d("method activate");
 
         if (MainActivity.fileDrop) {
             try {
@@ -169,15 +174,6 @@ public class AudioRecord {
         }
 
         MainActivity.view.recreate();
-    }
-
-    public void release() {
-        myLog.d("method activate");
-
-        audioData = null;
-        shortBuffer = null;
-
-        queue = new Queue();
     }
 
     public String raw_fileName(long realtime) {
@@ -239,21 +235,21 @@ public class AudioRecord {
         // Not necessarily the best, but it's very easy to visualize this way
         out.write(new byte[]{
                 // RIFF header
-                'R', 'I', 'F', 'F', // ChunkID
-                0, 0, 0, 0, // ChunkSize (must be updated later)
+                'R', 'I', 'F', 'F', // Chunk ID
+                0, 0, 0, 0, // Chunk Size (must be updated later)
                 'W', 'A', 'V', 'E', // Format
                 // fmt subchunk
-                'f', 'm', 't', ' ', // Subchunk1ID
-                16, 0, 0, 0, // Subchunk1Size
+                'f', 'm', 't', ' ', // Subchunk1 ID
+                16, 0, 0, 0, // Subchunk1 Size
                 1, 0, // AudioFormat
                 littleBytes[0], littleBytes[1], // NumChannels
-                littleBytes[2], littleBytes[3], littleBytes[4], littleBytes[5], // SampleRate
-                littleBytes[6], littleBytes[7], littleBytes[8], littleBytes[9], // ByteRate
-                littleBytes[10], littleBytes[11], // BlockAlign
-                littleBytes[12], littleBytes[13], // BitsPerSample
-                // data subchunk
-                'd', 'a', 't', 'a', // Subchunk2ID
-                0, 0, 0, 0, // Subchunk2Size (must be updated later)
+                littleBytes[2], littleBytes[3], littleBytes[4], littleBytes[5], // Sample Rate
+                littleBytes[6], littleBytes[7], littleBytes[8], littleBytes[9], // Byte Rate
+                littleBytes[10], littleBytes[11], // Block Align
+                littleBytes[12], littleBytes[13], // Bits Per Sample
+                // data sub chunk
+                'd', 'a', 't', 'a', // Subchunk2 ID
+                0, 0, 0, 0, // Subchunk2 Size (must be updated later)
         });
     }
 
@@ -292,7 +288,6 @@ public class AudioRecord {
             }
         }
     }
-
 
     // short[] -> byte[] 후보 1
     private byte[] shortToByte_1(short[] sData) {
@@ -338,7 +333,6 @@ public class AudioRecord {
 
         return bytes;
     }
-
 
     // using 1) pcm file to wav file
     /*

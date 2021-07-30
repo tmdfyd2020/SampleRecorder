@@ -12,7 +12,7 @@ public class AudioTrack {
     private final int STREAM_TYPE = AudioManager.STREAM_MUSIC;
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_OUT_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
-    private final int MODE = android.media.AudioTrack.MODE_STREAM;  // MODE_STREAM
+    private final int MODE = android.media.AudioTrack.MODE_STREAM;
 
     private Queue queue_fromRecord;
 
@@ -23,7 +23,7 @@ public class AudioTrack {
     private int capacity_buffer, track_bufferSize, len_audioData;
 
     public void init() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
@@ -31,8 +31,7 @@ public class AudioTrack {
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(  // recorded buffer size
                 MainActivity.SampleRate,
                 CHANNEL_CONFIG,
-                AUDIO_FORMAT
-        ) * 2;
+                AUDIO_FORMAT ) * 2;
 
         audioData = new short[track_bufferSize];
         len_audioData = audioData.length;
@@ -41,8 +40,8 @@ public class AudioTrack {
     }
 
     public void play() {
-        myLog.d("method activate");
-        myLog.d("Playing Sample Rate : " + String.valueOf(MainActivity.SampleRate));
+//        myLog.d("method activate");
+//        myLog.d("Playing Sample Rate : " + String.valueOf(MainActivity.SampleRate));
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack(
@@ -69,6 +68,7 @@ public class AudioTrack {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
                     len_write = audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
 
+
                     if (len_write == len_audioData && audioData[audioData.length - 1] == AudioRecord.index) {
                         MainActivity.autoStop = true;
                         break;
@@ -81,7 +81,7 @@ public class AudioTrack {
     }
 
     public void stop() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         if (audioTrack != null && audioTrack.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
             if (audioTrack.getPlayState() != android.media.AudioTrack.PLAYSTATE_STOPPED) {
@@ -100,8 +100,6 @@ public class AudioTrack {
     }
 
     public void release() {
-        myLog.d("method activate");
-
-        queue_fromRecord = AudioRecord.queue;
+//        myLog.d("method activate");
     }
 }

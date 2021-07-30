@@ -1,123 +1,303 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:orientation="horizontal"
+    android:background="@color/white" >
 
-    <!-- chunkAlignTo -> center | bottom -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
-    <ImageView
-        android:id="@+id/img_recording"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center_horizontal"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.248"
-        app:srcCompat="@drawable/recording" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical" >
 
-    <com.visualizer.amplitude.AudioRecordView
-        android:id="@+id/view_recordFFT"
-        android:layout_width="200dp"
-        android:layout_height="64dp"
-        app:chunkAlignTo="center"
-        app:chunkRoundedCorners="true"
-        app:chunkSoftTransition="true"
-        app:chunkColor="@color/sky_blue"
-        app:chunkSpace="1dp"
-        app:chunkWidth="2dp"
-        app:chunkMaxHeight="48dp"
-        app:chunkMinHeight="2dp"
-        app:direction="leftToRight"
-        app:layout_constraintTop_toBottomOf="@+id/img_recording"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <ImageView
+            android:id="@+id/img_recording"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="200dp"
+            android:visibility="visible"
+            app:srcCompat="@drawable/recording" />
 
-    <TextView
-        android:id="@+id/text_samplingRate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Sample Rate : 16,000"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view_recordFFT"
-        app:layout_constraintBottom_toTopOf="@+id/text_timer" />
+        <com.visualizer.amplitude.AudioRecordView
+            android:id="@+id/view_waveForm"
+            android:layout_width="150dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
+            app:chunkAlignTo="center"
+            app:chunkRoundedCorners="true"
+            app:chunkSoftTransition="true"
+            app:chunkColor="@color/sky_blue"
+            app:chunkSpace="1dp"
+            app:chunkWidth="2dp"
+            app:chunkMaxHeight="48dp"
+            app:chunkMinHeight="2dp"
+            app:direction="leftToRight" />
 
-    <TextView
-        android:id="@+id/text_timer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="40sp"
-        android:visibility="invisible"
-        android:layout_marginTop="5dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_samplingRate" />
+        <TextView
+            android:id="@+id/text_samplingRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:text="Sample Rate : 16,000"
+            android:textSize="16sp" />
 
-    <Button
-        android:id="@+id/btn_record"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="RECORD"
-        android:layout_marginTop="50dp"
-        android:background="@drawable/btn_record_active"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_timer" />
+        <TextView
+            android:id="@+id/text_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="00:00:00"
+            android:textSize="30sp"
+            android:visibility="visible"
+            android:layout_marginTop="5dp" />
 
-    <Button
-        android:id="@+id/btn_play"
-        android:text="PLAY"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/btn_play_active"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_record" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
+            app:cardCornerRadius="30dp"
+            app:cardElevation="10dp" >
 
-    <Button
-        android:id="@+id/btn_setting"
-        android:text="Sample Rate"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/btn_setting_active"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_play" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@color/white" >
 
-    <Button
-        android:id="@+id/btn_fileDrop"
-        android:text="FILE DROP ON"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/btn_filedrop_active"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_setting" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Record Settings"
+                    android:textColor="#E43131"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp" />
 
-    <Button
-        android:id="@+id/btn_exit"
-        android:text="EXIT"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/btn_exit_and_inactive"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_fileDrop" />
+                <Button
+                    android:id="@+id/btn_record"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="RECORD"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/btn_record_active" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <Button
+                    android:id="@+id/btn_play"
+                    android:text="PLAY"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/btn_play_active" />
+
+                <Button
+                    android:id="@+id/btn_setting"
+                    android:text="Sample Rate"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/btn_setting_active" />
+
+                <Button
+                    android:id="@+id/btn_fileDrop"
+                    android:text="FILE DROP ON"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/btn_filedrop_active" />
+
+                <Button
+                    android:id="@+id/btn_exit"
+                    android:text="EXIT"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:background="@drawable/btn_exit_and_inactive" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="10dp" >
+
+            <Button
+                android:id="@+id/btn_record_2"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="RECORD"
+                android:background="@drawable/btn_record_active" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <!--                             Half Line                               -->
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical" >
+
+        <ImageView
+            android:id="@+id/img_recording_right"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="200dp"
+            android:visibility="visible"
+            app:srcCompat="@drawable/recording" />
+
+        <com.visualizer.amplitude.AudioRecordView
+            android:id="@+id/view_waveForm_right"
+            android:layout_width="150dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
+            app:chunkAlignTo="center"
+            app:chunkRoundedCorners="true"
+            app:chunkSoftTransition="true"
+            app:chunkColor="@color/sky_blue"
+            app:chunkSpace="1dp"
+            app:chunkWidth="2dp"
+            app:chunkMaxHeight="48dp"
+            app:chunkMinHeight="2dp"
+            app:direction="leftToRight" />
+
+        <TextView
+            android:id="@+id/text_samplingRate_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:text="Sample Rate : 16,000"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/text_timer_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="00:00:00"
+            android:textSize="30sp"
+            android:visibility="visible"
+            android:layout_marginTop="5dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
+            app:cardCornerRadius="30dp"
+            app:cardElevation="10dp" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@color/white" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Playback Settings"
+                    android:textColor="#409DE6"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp" />
+
+                <Button
+                    android:id="@+id/btn_record_right"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="TYPE\nMusic"
+                    android:textSize="13sp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/btn_source_setting" />
+
+                <Button
+                    android:id="@+id/btn_play_right"
+                    android:text="CHANNEL\nMONO"
+                    android:textSize="13sp"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/btn_source_setting" />
+
+                <Button
+                    android:id="@+id/btn_setting_right"
+                    android:text="Sample Rate\n16,000"
+                    android:textSize="13sp"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/btn_source_setting" />
+
+                <Button
+                    android:id="@+id/btn_fileDrop_right"
+                    android:text="VOLUME\n15"
+                    android:textSize="13sp"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="80dp"
+                    android:background="@drawable/btn_source_setting" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="10dp" >
+
+            <Button
+                android:id="@+id/btn_play_2"
+                android:text="PLAY"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/btn_play_active" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+</LinearLayout>
