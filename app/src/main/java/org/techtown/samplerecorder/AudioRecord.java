@@ -1,13 +1,9 @@
 package org.techtown.samplerecorder;
 
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,7 +17,7 @@ import java.util.Date;
 
 public class AudioRecord {
 
-    private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;  // AudioSource.MIC
+    private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
@@ -36,32 +32,34 @@ public class AudioRecord {
     private short[] audioData = null;
     private int capacity_buffer, record_bufferSize, len_audioData, dataMax;
 
-    public void init() {
+    public void init(int sampleRate) {
 //        myLog.d("method activate");
 
         audioData = null;
         shortBuffer = null;
 
-        capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
+        capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
-                MainActivity.SampleRate,
+                sampleRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT ) * 2;
         audioData = new short[record_bufferSize];
 
         queue = new Queue();
+
+        MainActivity.view.recreate();
     }
 
-    public void start() {
+    public void start(int sampleRate) {
 //        myLog.d("method activate");
-//        myLog.d("Recording Sample Rate : " + String.valueOf(MainActivity.SampleRate));
+//        myLog.d("Recording Sample Rate : " + String.valueOf(MsampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
                     AUDIO_SOURCE,
-                    MainActivity.SampleRate,
+                    sampleRate,
                     CHANNEL_CONFIG,
                     AUDIO_FORMAT,
                     audioData.length
@@ -69,7 +67,7 @@ public class AudioRecord {
         }
 
         if (MainActivity.fileDrop) {
-            file = new File("/mnt/sdcard/audioDrop/", wav_fileName(System.currentTimeMillis()));
+            file = new File("/mnt/sdcard/audioDrop/", raw_fileName(System.currentTimeMillis()));
             outputStream = null;
 
             try {
@@ -78,11 +76,11 @@ public class AudioRecord {
                 e.printStackTrace();
             }
 
-            try {
-                writeWavHeader(outputStream, CHANNEL_CONFIG, MainActivity.SampleRate, AUDIO_FORMAT);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                writeWavHeader(outputStream, CHANNEL_CONFIG, sampleRate, AUDIO_FORMAT);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
 
         audioRecord.startRecording();
@@ -92,13 +90,13 @@ public class AudioRecord {
             public void run() {
 
                 shortBuffer.rewind();
-                myLog.d("Recording isRecording >> " + String.valueOf(MainActivity.isRecording));
+                myLog.d("Recording isRecording >> " + String.valueOf(sampleRate));
 
                 len_audioData = 0;
                 while(MainActivity.isRecording) {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
-                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
+//                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
 
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
@@ -106,6 +104,7 @@ public class AudioRecord {
                             dataMax = Math.abs(audioData[i]);
                         }
                     }
+
 
                     if (MainActivity.fileDrop) {  // why? 해당 부분 dataMax 반복문 위로 가면 view 출력이 안됨
                         try {
@@ -117,6 +116,7 @@ public class AudioRecord {
 
                     MainActivity.view.update(dataMax);
                 }
+                queue.enqueue(shortBuffer);  // shortBuffer -> queue
 
                 myLog.d("len_audioData Size >> " + String.valueOf(len_audioData));
             }
@@ -166,14 +166,12 @@ public class AudioRecord {
             */
 
             // using 2) raw + wav header
-            try {
-                updateWavHeader(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                updateWavHeader(file);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
-
-        MainActivity.view.recreate();
     }
 
     public String raw_fileName(long realtime) {
@@ -360,8 +358,8 @@ public class AudioRecord {
             writeInt(output, 16); // subchunk 1 size
             writeShort(output, (short) 1); // audio format (1 = PCM)
             writeShort(output, (short) 1); // number of channels
-            writeInt(output, MainActivity.SampleRate); // sample rate
-            writeInt(output, MainActivity.SampleRate * 2); // byte rate
+            writeInt(output, sampleRate); // sample rate
+            writeInt(output, sampleRate * 2); // byte rate
             writeShort(output, (short) 2); // block align
             writeShort(output, (short) 16); // bits per sample
             writeString(output, "data"); // subchunk 2 id

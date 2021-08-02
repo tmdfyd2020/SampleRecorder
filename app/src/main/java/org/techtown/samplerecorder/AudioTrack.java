@@ -3,8 +3,6 @@ package org.techtown.samplerecorder;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 public class AudioTrack {
@@ -22,14 +20,14 @@ public class AudioTrack {
     private short[] audioData = null;
     private int capacity_buffer, track_bufferSize, len_audioData;
 
-    public void init() {
+    public void init(int sampleRate) {
 //        myLog.d("method activate");
 
-        capacity_buffer = MainActivity.SampleRate * 60;  // stored buffer size (60s)
+        capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         track_bufferSize = android.media.AudioTrack.getMinBufferSize(  // recorded buffer size
-                MainActivity.SampleRate,
+                sampleRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT ) * 2;
 
@@ -39,14 +37,14 @@ public class AudioTrack {
         queue_fromRecord = AudioRecord.queue;
     }
 
-    public void play() {
+    public void play(int sampleRate) {
 //        myLog.d("method activate");
-//        myLog.d("Playing Sample Rate : " + String.valueOf(MainActivity.SampleRate));
+//        myLog.d("Playing Sample Rate : " + String.valueOf(sampleRate));
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack(
                     STREAM_TYPE,
-                    MainActivity.SampleRate,
+                    sampleRate,
                     CHANNEL_CONFIG,
                     AUDIO_FORMAT,
                     audioData.length,
@@ -81,7 +79,7 @@ public class AudioTrack {
     }
 
     public void stop() {
-//        myLog.d("method activate");
+        myLog.d("method activate");
 
         if (audioTrack != null && audioTrack.getState() != android.media.AudioTrack.STATE_UNINITIALIZED) {
             if (audioTrack.getPlayState() != android.media.AudioTrack.PLAYSTATE_STOPPED) {
@@ -100,6 +98,6 @@ public class AudioTrack {
     }
 
     public void release() {
-//        myLog.d("method activate");
+        myLog.d("method activate");
     }
 }

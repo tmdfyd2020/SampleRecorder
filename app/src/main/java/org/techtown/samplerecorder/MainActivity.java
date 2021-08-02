@@ -11,6 +11,9 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.text.Html;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -23,14 +26,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.visualizer.amplitude.AudioRecordView;
 
+import lib.kingja.switchbutton.SwitchMultiButton;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static int SampleRate = 16000;
     public static boolean isRecording = false;
     public static boolean isPlaying = false;
     public static boolean fileDrop;
@@ -41,11 +46,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
-    private Button btn_record, btn_play, btn_setting, btn_fileDrop, btn_exit;
-    private ImageView img_recording;
-    private TextView text_timer, text_samplingRate;
+    private Button btn_record, btn_play, btn_record_sampleRate, btn_play_sampleRate, btn_exit;
+    private ImageView img_recording, img_playing;
+    private TextView text_record_timer, text_play_timer;
     private long startTime, totalTime;
-    private int tempRate = SampleRate, dialogIndex = 1;
+    private int record_sampleRate = 16000, play_sampleRate = 16000;
+    private int record_tempRate = record_sampleRate, play_tempRate = play_sampleRate, record_sampleRate_index = 1, play_sampleRate_index = 1;
+    private SwitchMultiButton switchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,33 +66,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void init() {
 //        myLog.d("method activate");
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         img_recording = (ImageView) findViewById(R.id.img_recording);
+        img_playing = (ImageView) findViewById(R.id.img_playing);
         view = findViewById(R.id.view_waveForm);
-        text_timer = (TextView) findViewById(R.id.text_timer);
-        text_samplingRate = (TextView) findViewById(R.id.text_samplingRate);
+        text_record_timer = (TextView) findViewById(R.id.text_record_timer);
+        text_play_timer = (TextView) findViewById(R.id.text_play_timer);
 
         btn_record = (Button) findViewById(R.id.btn_record);
         btn_record.setOnClickListener(this);
         btn_play = (Button) findViewById(R.id.btn_play);
         btn_play.setOnClickListener(this);
         btn_play.setEnabled(false);
-        btn_setting = (Button) findViewById(R.id.btn_setting);
-        btn_setting.setOnClickListener(this);
-        btn_fileDrop = (Button) findViewById(R.id.btn_fileDrop);
-        btn_fileDrop.setOnClickListener(this);
-        btn_exit = (Button) findViewById(R.id.btn_exit);
+        btn_record_sampleRate = (Button) findViewById(R.id.btn_record_sampleRate);
+        btn_record_sampleRate.setOnClickListener(this);
+        btn_play_sampleRate = (Button) findViewById(R.id.btn_play_sampleRate);
+        btn_play_sampleRate.setOnClickListener(this);
+        btn_exit = (Button) findViewById(R.id.btn_record_bufferSize);
         btn_exit.setOnClickListener(this);
+
+        switchButton = (SwitchMultiButton) findViewById(R.id.switchButton);
+        switchButton.setOnSwitchListener(new SwitchMultiButton.OnSwitchListener() {
+            @Override
+            public void onSwitch(int position, String tabText) {
+
+                if (position == 0) {  // for file drop open
+                    fileDrop = true;
+                    editor.putBoolean("fileState", fileDrop);
+                    editor.commit();
+                    view.recreate();
+                } else if (position == 1) {  // for file drop down
+                    fileDrop = false;
+                    editor.putBoolean("fileState", fileDrop);
+                    editor.commit();
+                    view.recreate();
+                }
+            }
+        });
 
         sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
         editor = sharedPreferences.edit();
         fileDrop = sharedPreferences.getBoolean("fileState", true);
 
         if (fileDrop) {
-            btn_fileDrop.setText("FILE DROP ON");
-            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
+            switchButton.setSelectedTab(0);
         } else {
-            btn_fileDrop.setText("FILE DROP OFF");
-            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
+            switchButton.setSelectedTab(1);
         }
     }
 
@@ -119,10 +147,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
-        myAudioRecord.init();
+        myAudioRecord.init(record_sampleRate);
 
         myAudioTrack = new org.techtown.samplerecorder.AudioTrack();
-        myAudioTrack.init();
+        myAudioTrack.init(play_sampleRate);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_toolbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_exit:
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
+                builder.setTitle("Exit")
+                        .setMessage("Are you sure you want to quit?")
+                        .setIcon(getDrawable(R.drawable.ic_baseline_exit_icon))
+                        .setCancelable(false)
+                        .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Yes</font>"), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+                        })
+                        .setNegativeButton(Html.fromHtml("<font color='#F06292'>No</font>"), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                Dialog dialog = builder.create();
+                dialog.getWindow().setGravity(Gravity.CENTER);
+                dialog.show();
+                break;
+        }
+
+        return true;
     }
 
     @Override
@@ -134,15 +200,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_play:
                 play();
                 break;
-            case R.id.btn_setting:
-                setting();
+            case R.id.btn_record_sampleRate:
+                record_sampleRate();
                 break;
-            case R.id.btn_fileDrop:
-                fileDrop();
+            case R.id.btn_play_sampleRate:
+                play_sampleRate();
                 break;
-            case R.id.btn_exit:
+            case R.id.btn_record_bufferSize:
                 exit();
                 break;
+
         }
     }
 
@@ -156,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopRecording();
         } else {  // if "RECORD" button clicked,
             allInit();
-            myAudioRecord.start();
+            myAudioRecord.start(record_sampleRate);
             isRecording = true;
             startRecording();
         }
@@ -171,12 +238,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setEnabled(true);
         btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
         btn_play.setEnabled(true);
-        btn_setting.setEnabled(true);
-        btn_fileDrop.setEnabled(true);
+        btn_record_sampleRate.setEnabled(true);
 
+        recordHandler.removeMessages(0);
         long stopTime = SystemClock.elapsedRealtime();
         totalTime = stopTime - startTime;
-        recordHandler.removeMessages(0);
     }
 
     public void startRecording() {
@@ -187,11 +253,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn_record.setText("Stop");
         btn_record.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
-        btn_setting.setEnabled(false);
-        btn_fileDrop.setEnabled(false);
+        btn_record_sampleRate.setEnabled(false);
         btn_exit.setEnabled(true);
         img_recording.setVisibility(View.VISIBLE);
-        text_timer.setVisibility(View.VISIBLE);
+        text_record_timer.setVisibility(View.VISIBLE);
+        text_play_timer.setVisibility(View.INVISIBLE);
 
         startTime = SystemClock.elapsedRealtime();
         recordHandler.sendEmptyMessage(0);
@@ -215,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopPlaying();
         } else {  // if "PLAY" button clicked,
             isPlaying = true;
-            myAudioTrack.play();
+            myAudioTrack.play(play_sampleRate);
             startPlaying();
         }
     }
@@ -223,49 +289,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopPlaying() {
 //        myLog.d("method activate");
 
+        img_playing.clearAnimation();
+        img_playing.setVisibility(View.INVISIBLE);
         btn_record.setEnabled(true);
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
-        btn_setting.setEnabled(true);
-        btn_fileDrop.setEnabled(true);
+        btn_record_sampleRate.setEnabled(true);
 
         playHandler.removeMessages(0);
+        autoStopHandler.removeMessages(0);
+
     }
 
     public void startPlaying() {
 //        myLog.d("method activate");
 
+        img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
         btn_play.setText("Stop");
         btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
-        btn_setting.setEnabled(false);
-        btn_fileDrop.setEnabled(false);
+        btn_record_sampleRate.setEnabled(false);
+        text_play_timer.setVisibility(View.VISIBLE);
 
         startTime = SystemClock.elapsedRealtime();
         playHandler.sendEmptyMessage(0);
+        autoStopHandler.sendEmptyMessage(0);
+
+        Animation animation = new AlphaAnimation(1, 0);
+        animation.setDuration(500);
+        animation.setInterpolator(new LinearInterpolator());
+        animation.setRepeatCount(Animation.INFINITE);
+        animation.setRepeatMode(Animation.REVERSE);
+        img_playing.startAnimation(animation);
+
     }
 
-    public void fileDrop() {
-//        myLog.d("method activate");
-
-        if (fileDrop) {  // fileDrop ON -> OFF
-            fileDrop = false;
-            editor.putBoolean("fileState", fileDrop);
-            editor.commit();
-            btn_fileDrop.setText("FILE DROP OFF");
-            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
-            view.recreate();
-        } else {  // fileDrop OFF -> ON
-            fileDrop = true;
-            editor.putBoolean("fileState", fileDrop);
-            editor.commit();
-            btn_fileDrop.setText("FILE DROP ON");
-            btn_fileDrop.setBackground(getDrawable(R.drawable.btn_filedrop_active));
-            view.recreate();
-        }
-    }
-
-    public void setting() {
+    public void record_sampleRate() {
 //        myLog.d("method activate");
 
         final String[] freqArray = new String[]{"8,000", "16,000"};
@@ -273,23 +332,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setIcon(getDrawable(R.drawable.frequency))
                 .setTitle("Sample Rate")
                 .setCancelable(false)
-                .setSingleChoiceItems(freqArray, dialogIndex, new DialogInterface.OnClickListener() {
+                .setSingleChoiceItems(freqArray, record_sampleRate_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        dialogIndex = which;
                         if (freqArray[which].equals("8,000")) {
-                            tempRate = 8000;
+                            record_tempRate = 8000;
                         } else if (freqArray[which].equals("16,000")) {
-                            tempRate = 16000;
+                            record_tempRate = 16000;
+                        }
+                        record_sampleRate_index = which;
+                    }
+                })
+                .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        record_sampleRate = record_tempRate;
+                        btn_record_sampleRate.setText("SAMPLE RATE\n" + String.valueOf(record_sampleRate));
+                        Toast.makeText(MainActivity.this, Integer.toString(record_sampleRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(Html.fromHtml("<font color='#F06292'>Back</font>"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "취소", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                });
+
+        Dialog dialog = builder.create();
+        dialog.getWindow().setGravity(Gravity.CENTER);
+        dialog.show();
+    }
+
+    public void play_sampleRate() {
+//        myLog.d("method activate");
+
+        final String[] freqArray = new String[]{"8,000", "16,000"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
+        builder.setIcon(getDrawable(R.drawable.frequency))
+                .setTitle("Sample Rate")
+                .setCancelable(false)
+                .setSingleChoiceItems(freqArray, play_sampleRate_index, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        play_sampleRate_index = which;
+                        if (freqArray[which].equals("8,000")) {
+                            play_tempRate = 8000;
+                        } else if (freqArray[which].equals("16,000")) {
+                            play_tempRate = 16000;
                         }
                     }
                 })
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        SampleRate = tempRate;
-                        text_samplingRate.setText("Sample Rate : " + String.valueOf(SampleRate));
-                        Toast.makeText(MainActivity.this, Integer.toString(SampleRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
+                        play_sampleRate = play_tempRate;
+                        btn_play_sampleRate.setText("SAMPLE RATE\n" + String.valueOf(play_sampleRate));
+                        Toast.makeText(MainActivity.this, Integer.toString(play_sampleRate) + "로 설정 완료", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton(Html.fromHtml("<font color='#F06292'>Back</font>"), new DialogInterface.OnClickListener() {
@@ -334,7 +433,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler recordHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_timer.setText(getRecordTime());
+            text_record_timer.setText(getRecordTime());
+
             recordHandler.sendEmptyMessage(0);
         }
     };
@@ -355,14 +455,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler playHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_timer.setText(getPlayTime());
-
-            if (autoStop) {
-                isPlaying = false;
-                myAudioTrack.stop();
-                stopPlaying();
-                autoStop = false;
-            }
+            text_play_timer.setText(getPlayTime());
 
             playHandler.sendEmptyMessage(0);
         }
@@ -374,10 +467,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         long min, sec, msec;
         String timeText;
 
-        if (overTime > totalTime) {
+        if (overTime > totalTime && record_sampleRate == play_sampleRate) {
             min = totalTime / 1000 / 60;
             sec = (totalTime / 1000) % 60;
-            msec = totalTime % 1000 / 10;
+            msec = ((totalTime - 3) % 1000) / 10;
 
             timeText = String.format("%02d : %02d : %02d", min, sec, msec);
 
@@ -392,5 +485,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         return timeText;
     }
+
+    Handler autoStopHandler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            if (autoStop) {
+                myLog.d("autoStop 발생!");
+                autoStop = false;
+                isPlaying = false;
+                myAudioTrack.stop();
+                myAudioTrack.release();
+
+                img_playing.clearAnimation();
+                img_playing.setVisibility(View.INVISIBLE);
+                btn_record.setEnabled(true);
+                btn_play.setText("Play");
+                btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
+                btn_record_sampleRate.setEnabled(true);
+
+                if (record_sampleRate != play_sampleRate) {
+                    playHandler.removeMessages(0);
+                }
+                autoStopHandler.removeMessages(0);
+            }
+            autoStopHandler.sendEmptyMessage(0);
+        }
+    };
 
 }
