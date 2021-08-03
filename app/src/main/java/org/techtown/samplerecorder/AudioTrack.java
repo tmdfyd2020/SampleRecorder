@@ -7,7 +7,6 @@ import java.nio.ShortBuffer;
 
 public class AudioTrack {
 
-    private final int STREAM_TYPE = AudioManager.STREAM_MUSIC;
     private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_OUT_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
     private final int MODE = android.media.AudioTrack.MODE_STREAM;
@@ -30,22 +29,21 @@ public class AudioTrack {
                 sampleRate,
                 CHANNEL_CONFIG,
                 AUDIO_FORMAT ) * 2;
-
         audioData = new short[track_bufferSize];
         len_audioData = audioData.length;
 
         queue_fromRecord = AudioRecord.queue;
     }
 
-    public void play(int sampleRate) {
+    public void play(int type, int channel, int sampleRate) {
 //        myLog.d("method activate");
 //        myLog.d("Playing Sample Rate : " + String.valueOf(sampleRate));
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack(
-                    STREAM_TYPE,
+                    type,
                     sampleRate,
-                    CHANNEL_CONFIG,
+                    channel,
                     AUDIO_FORMAT,
                     audioData.length,
                     MODE

@@ -17,8 +17,6 @@ import java.util.Date;
 
 public class AudioRecord {
 
-    private final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
-    private final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
     public static Queue queue;
@@ -32,7 +30,7 @@ public class AudioRecord {
     private short[] audioData = null;
     private int capacity_buffer, record_bufferSize, len_audioData, dataMax;
 
-    public void init(int sampleRate) {
+    public void init(int sampleRate, int bufferSize) {
 //        myLog.d("method activate");
 
         audioData = null;
@@ -41,26 +39,27 @@ public class AudioRecord {
         capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
-        record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
-                sampleRate,
-                CHANNEL_CONFIG,
-                AUDIO_FORMAT ) * 2;
+//        record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
+//                sampleRate,
+//                channel,
+//                AUDIO_FORMAT ) * 2;
+        record_bufferSize = bufferSize;
         audioData = new short[record_bufferSize];
 
         queue = new Queue();
 
-        MainActivity.view.recreate();
+        MainActivity.view_record.recreate();
     }
 
-    public void start(int sampleRate) {
+    public void start(int source, int channel, int sampleRate) {
 //        myLog.d("method activate");
-//        myLog.d("Recording Sample Rate : " + String.valueOf(MsampleRate));
+//        myLog.d("Recording Sample Rate : " + String.valueOf(sampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
-                    AUDIO_SOURCE,
+                    source,
                     sampleRate,
-                    CHANNEL_CONFIG,
+                    channel,
                     AUDIO_FORMAT,
                     audioData.length
             );
@@ -114,7 +113,7 @@ public class AudioRecord {
                         }
                     }
 
-                    MainActivity.view.update(dataMax);
+                    MainActivity.view_record.update(dataMax);
                 }
                 queue.enqueue(shortBuffer);  // shortBuffer -> queue
 

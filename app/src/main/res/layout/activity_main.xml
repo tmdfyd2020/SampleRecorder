@@ -41,7 +41,7 @@
                 app:srcCompat="@drawable/recording" />
 
             <com.visualizer.amplitude.AudioRecordView
-                android:id="@+id/view_waveForm"
+                android:id="@+id/view_record_waveForm"
                 android:layout_width="150dp"
                 android:layout_height="64dp"
                 android:layout_gravity="center_horizontal"
@@ -110,7 +110,7 @@
 
                     <Button
                         android:id="@+id/btn_record_sampleRate"
-                        android:text="Sample Rate\n16000"
+                        android:text="Sample Rate\n16,000"
                         android:textSize="13sp"
                         android:layout_width="150dp"
                         android:layout_height="wrap_content"
@@ -120,7 +120,7 @@
 
                     <Button
                         android:id="@+id/btn_record_bufferSize"
-                        android:text="BUFFER SIZE\n1024"
+                        android:text="BUFFER SIZE\n1,024"
                         android:textSize="13sp"
                         android:layout_width="150dp"
                         android:layout_height="wrap_content"
@@ -136,7 +136,7 @@
                         android:layout_marginBottom="20dp"
                         android:padding="8dp"
                         android:layout_gravity="center_horizontal"
-                        app:selectedColor="#8BC34A"
+                        app:selectedColor="#ED695F"
                         app:selectedTab="0"
                         app:strokeRadius="10dp"
                         app:strokeWidth="2dp"
@@ -187,7 +187,7 @@
                 app:srcCompat="@drawable/playing" />
 
             <com.visualizer.amplitude.AudioRecordView
-                android:id="@+id/view_waveForm_right"
+                android:id="@+id/view_play_waveForm"
                 android:layout_width="150dp"
                 android:layout_height="64dp"
                 android:layout_gravity="center_horizontal"
@@ -256,7 +256,7 @@
 
                     <Button
                         android:id="@+id/btn_play_sampleRate"
-                        android:text="Sample Rate\n16000"
+                        android:text="Sample Rate\n16,000"
                         android:textSize="13sp"
                         android:layout_width="150dp"
                         android:layout_height="wrap_content"
