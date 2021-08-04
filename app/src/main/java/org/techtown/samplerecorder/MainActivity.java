@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void init() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         context = getApplicationContext();
 
