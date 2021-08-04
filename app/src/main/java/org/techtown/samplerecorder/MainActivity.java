@@ -2,13 +2,10 @@ package org.techtown.samplerecorder;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.MediaRecorder;
@@ -22,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -49,22 +45,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static boolean isPlaying = false;
     public static boolean fileDrop;
     public static boolean autoStop = false;
-    public static AudioRecordView view_record, view_play;
 
+    private AudioRecordView view_record, view_play;
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
+    private Context context;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private Button btn_record, btn_record_source, btn_record_channel, btn_record_sampleRate, btn_record_bufferSize;
     private Button btn_play, btn_play_type, btn_play_channel, btn_play_sampleRate, btn_play_volume;
-    private ImageView img_recording, img_playing;
+    private ImageView img_recording, img_playing, img_seekbar;
     private TextView text_record_timer, text_play_timer, text_seekbar;
     private SeekBar seekBar_volume;
     private long startTime, totalTime;
     private int record_source, record_tempSource, record_source_index, play_type, play_tempType, play_type_index;
     private int record_channel, record_tempChannel, record_channel_index, play_channel, play_tempChannel, play_channel_index;
     private int record_sampleRate, record_tempRate, record_sampleRate_index, play_sampleRate, play_tempRate, play_sampleRate_index;
-    private int record_bufferSize, record_tempBuffer, record_bufferSize_index, play_volume, play_TempVolume, play_volume_index;
+    private int record_bufferSize, record_tempBuffer, record_bufferSize_index;
     private SwitchMultiButton switchButton;
 
     @Override
@@ -100,19 +97,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         play_sampleRate = 16000;
         play_tempRate = play_sampleRate;
         play_sampleRate_index = 2;
-        play_volume = 1;
-        play_TempVolume = play_volume;
-        play_volume_index = 0;
     }
 
     public void init() {
 //        myLog.d("method activate");
+
+        context = getApplicationContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         img_recording = (ImageView) findViewById(R.id.img_recording);
         view_record = findViewById(R.id.view_record_waveForm);
+        view_play = findViewById(R.id.view_play_waveForm);
         text_record_timer = (TextView) findViewById(R.id.text_record_timer);
         btn_record_source = (Button) findViewById(R.id.btn_record_source);
         btn_record_source.setOnClickListener(this);
@@ -171,8 +168,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             switchButton.setSelectedTab(1);
         }
-
-        text_seekbar = (TextView) findViewById(R.id.text_seekbar);
     }
 
     public void permissionCheck() {
@@ -211,10 +206,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
-        myAudioRecord.init(record_sampleRate, record_bufferSize);
+        myAudioRecord.init(record_sampleRate, record_bufferSize, view_record);
 
         myAudioTrack = new org.techtown.samplerecorder.AudioTrack();
-        myAudioTrack.init(play_sampleRate);
+        myAudioTrack.init(play_sampleRate, view_play);
     }
 
     @Override
@@ -296,12 +291,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (isRecording) {  // if "STOP" button clicked,
             myAudioRecord.stop();
-            myAudioRecord.release();
+            myAudioRecord.release(context);
             isRecording = false;  // check : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // if "RECORD" button clicked,
             allInit();
-            myAudioRecord.start(record_source, record_channel, record_sampleRate);
+            myAudioRecord.start(record_source, record_channel, record_sampleRate, view_record);
             isRecording = true;
             startRecording();
         }
@@ -316,7 +311,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setEnabled(true);
         btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
         btn_play.setEnabled(true);
-        btn_record_sampleRate.setEnabled(true);
 
         recordHandler.removeMessages(0);
         long stopTime = SystemClock.elapsedRealtime();
@@ -331,8 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         totalTime = 0;
 
         btn_record.setText("Stop");
-        btn_record.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
-        btn_record_sampleRate.setEnabled(false);
+        btn_record.setBackground(getDrawable(R.drawable.btn_inactive));
         btn_record_bufferSize.setEnabled(true);
         img_recording.setVisibility(View.VISIBLE);
         text_record_timer.setVisibility(View.VISIBLE);
@@ -360,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopPlaying();
         } else {  // if "PLAY" button clicked,
             isPlaying = true;
-            myAudioTrack.play(play_type, play_channel, play_sampleRate);
+            myAudioTrack.play(play_type, play_channel, play_sampleRate, view_play);
             startPlaying();
         }
     }
@@ -373,7 +366,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setEnabled(true);
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
-        btn_record_sampleRate.setEnabled(true);
 
         playHandler.removeMessages(0);
         autoStopHandler.removeMessages(0);
@@ -386,8 +378,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
         btn_play.setText("Stop");
-        btn_play.setBackground(getDrawable(R.drawable.btn_exit_and_inactive));
-        btn_record_sampleRate.setEnabled(false);
+        btn_play.setBackground(getDrawable(R.drawable.btn_inactive));
         text_play_timer.setVisibility(View.VISIBLE);
 
         startTime = SystemClock.elapsedRealtime();
@@ -793,11 +784,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         View innerView = getLayoutInflater().inflate(R.layout.seekbar, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
-        builder.setIcon(getDrawable(R.drawable.ic_baseline_type))
-                .setTitle("Volume")
+        builder.setTitle("Volume")
                 .setView(innerView);
 
         seekBar_volume = (SeekBar) innerView.findViewById(R.id.seekbar_volume);
+        text_seekbar = (TextView) innerView.findViewById(R.id.text_seekbar);
+        img_seekbar = (ImageView) innerView.findViewById(R.id.img_seekbar);
         seekBar_action();
 
         Dialog dialog = builder.create();
@@ -814,11 +806,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         seekBar_volume.setMin(1);
         seekBar_volume.setMax(nMax);
         seekBar_volume.setProgress(nCurrentVolume);
+        if (nCurrentVolume >= 13) {
+            text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
+            img_seekbar.setImageResource(R.drawable.speaker_volume2);
+        } else if (nCurrentVolume >= 10 && nCurrentVolume < 13) {
+            text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
+            img_seekbar.setImageResource(R.drawable.speaker_volume2);
+        } else {
+            text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
+            img_seekbar.setImageResource(R.drawable.speaker_volume1);
+        }
+        text_seekbar.setText(String.valueOf(nCurrentVolume));
         seekBar_volume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO Auto-generated method stub
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                if (progress >= 13) {
+                    text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
+                    img_seekbar.setImageResource(R.drawable.speaker_volume2);
+                } else if (progress >= 10 && progress < 13) {
+                    text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
+                    img_seekbar.setImageResource(R.drawable.speaker_volume2);
+                } else {
+                    text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
+                    img_seekbar.setImageResource(R.drawable.speaker_volume1);
+                }
+                text_seekbar.setText(String.valueOf(progress));
                 btn_play_volume.setText("VOLUME\n" + String.valueOf(progress));
 //                myLog.d(String.valueOf(progress));
             }
@@ -897,7 +911,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btn_record.setEnabled(true);
                 btn_play.setText("Play");
                 btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
-                btn_record_sampleRate.setEnabled(true);
 
                 playHandler.removeMessages(0);
                 autoStopHandler.removeMessages(0);

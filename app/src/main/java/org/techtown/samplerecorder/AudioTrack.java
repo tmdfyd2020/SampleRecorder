@@ -1,7 +1,8 @@
 package org.techtown.samplerecorder;
 
 import android.media.AudioFormat;
-import android.media.AudioManager;
+
+import com.visualizer.amplitude.AudioRecordView;
 
 import java.nio.ShortBuffer;
 
@@ -17,9 +18,9 @@ public class AudioTrack {
     private Thread playThread = null;
     private ShortBuffer shortBuffer = null;
     private short[] audioData = null;
-    private int capacity_buffer, track_bufferSize, len_audioData;
+    private int capacity_buffer, track_bufferSize, len_audioData, dataMax;
 
-    public void init(int sampleRate) {
+    public void init(int sampleRate, AudioRecordView view_record) {
 //        myLog.d("method activate");
 
         capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
@@ -33,11 +34,15 @@ public class AudioTrack {
         len_audioData = audioData.length;
 
         queue_fromRecord = AudioRecord.queue;
+
+        view_record.recreate();
     }
 
-    public void play(int type, int channel, int sampleRate) {
+    public void play(int type, int channel, int sampleRate, AudioRecordView view_play) {
 //        myLog.d("method activate");
 //        myLog.d("Playing Sample Rate : " + String.valueOf(sampleRate));
+
+        view_play.recreate();
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack(
@@ -64,11 +69,19 @@ public class AudioTrack {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
                     len_write = audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
 
+                    for (int i = 0; i < audioData.length / 2; i++) {
+                        dataMax = 0;
+                        if (Math.abs(audioData[i]) >= dataMax) {
+                            dataMax = Math.abs(audioData[i]);
+                            view_play.update(dataMax * 2);
+                        }
+                    }
 
                     if (len_write == len_audioData && audioData[audioData.length - 1] == AudioRecord.index) {
                         MainActivity.autoStop = true;
                         break;
                     }
+
                 }
             }
 

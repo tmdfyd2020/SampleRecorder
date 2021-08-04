@@ -1,7 +1,10 @@
 package org.techtown.samplerecorder;
 
+import android.content.Context;
 import android.media.AudioFormat;
-import android.media.MediaRecorder;
+import android.widget.Toast;
+
+import com.visualizer.amplitude.AudioRecordView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +33,7 @@ public class AudioRecord {
     private short[] audioData = null;
     private int capacity_buffer, record_bufferSize, len_audioData, dataMax;
 
-    public void init(int sampleRate, int bufferSize) {
+    public void init(int sampleRate, int bufferSize, AudioRecordView view_record) {
 //        myLog.d("method activate");
 
         audioData = null;
@@ -39,19 +42,15 @@ public class AudioRecord {
         capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
-//        record_bufferSize = android.media.AudioRecord.getMinBufferSize(  // recorded buffer size
-//                sampleRate,
-//                channel,
-//                AUDIO_FORMAT ) * 2;
         record_bufferSize = bufferSize;
         audioData = new short[record_bufferSize];
 
         queue = new Queue();
 
-        MainActivity.view_record.recreate();
+        view_record.recreate();
     }
 
-    public void start(int source, int channel, int sampleRate) {
+    public void start(int source, int channel, int sampleRate, AudioRecordView view_record) {
 //        myLog.d("method activate");
 //        myLog.d("Recording Sample Rate : " + String.valueOf(sampleRate));
 
@@ -104,7 +103,6 @@ public class AudioRecord {
                         }
                     }
 
-
                     if (MainActivity.fileDrop) {  // why? 해당 부분 dataMax 반복문 위로 가면 view 출력이 안됨
                         try {
                             outputStream.write(shortToByte_1(audioData), 0, len_audioData);
@@ -113,7 +111,7 @@ public class AudioRecord {
                         }
                     }
 
-                    MainActivity.view_record.update(dataMax);
+                    view_record.update(dataMax);
                 }
                 queue.enqueue(shortBuffer);  // shortBuffer -> queue
 
@@ -141,7 +139,7 @@ public class AudioRecord {
         }
     }
 
-    public void release() {
+    public void release(Context context) {
 //        myLog.d("method activate");
 
         if (MainActivity.fileDrop) {
@@ -152,6 +150,8 @@ public class AudioRecord {
                 myLog.d("exception while closing output stream " + e.toString());
                 e.printStackTrace();
             }
+
+            Toast.makeText(context, file.getAbsolutePath() + " 저장 완료", Toast.LENGTH_LONG).show();
 
             // using 1) pcm file to wav file
             /*

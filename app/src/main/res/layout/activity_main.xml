@@ -191,7 +191,7 @@
                 android:layout_width="150dp"
                 android:layout_height="64dp"
                 android:layout_gravity="center_horizontal"
-                app:chunkAlignTo="center"
+                app:chunkAlignTo="bottom"
                 app:chunkRoundedCorners="true"
                 app:chunkSoftTransition="true"
                 app:chunkColor="@color/play_blue"
