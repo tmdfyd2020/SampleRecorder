@@ -2,7 +2,7 @@
 <resources>
 
     <string-array name="switch_tabs">
-        <item>DROP</item>
+        <item>ON</item>
         <item>OFF</item>
     </string-array>
 

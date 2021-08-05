@@ -8,7 +8,7 @@ public class Queue {
     java.util.Queue<ShortBuffer> queue;
 
     public Queue() {
-//        myLog.d("constructor activate");
+        myLog.d("constructor activate");
 
         queue = null;
         queue = new LinkedList<ShortBuffer>();
