@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
@@ -22,8 +20,9 @@ public class AudioRecord {
 
     private final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 
-    public static short index;
-    public static int sizeIndex;
+    public static short lastData_1, lastData_2;
+    public static short[] index;
+
 
     private android.media.AudioRecord audioRecord = null;
     private Thread recordThread = null;
@@ -103,9 +102,10 @@ public class AudioRecord {
                     }
                     view_record.update(dataMax);
                 }
-                index = audioData[len_audioData - 1];
-                sizeIndex = len_audioData;
-                myLog.d("Record last index : " + String.valueOf(index));
+                lastData_1 = audioData[len_audioData - 1];
+                lastData_2 = audioData[len_audioData - 2];
+                index = audioData;
+
                 queue.enqueue(shortBuffer);  // shortBuffer -> queue
             }
         });

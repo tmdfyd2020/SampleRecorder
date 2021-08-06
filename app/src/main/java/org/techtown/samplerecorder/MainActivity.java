@@ -47,25 +47,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static boolean fileDrop;
     public static boolean autoStop = false;
 
-    private AudioRecordView view_record, view_play;
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
-    private Context context;
+    private AudioRecordView view_record, view_play;
+    private SwitchMultiButton switchButton;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    private Context context;
+    private Queue queue;
     private Button btn_record, btn_record_source, btn_record_channel, btn_record_sampleRate, btn_record_bufferSize;
     private Button btn_play, btn_play_type, btn_play_channel, btn_play_sampleRate, btn_play_volume;
     private ImageView img_recording, img_playing, img_seekbar;
     private TextView text_record_timer, text_play_timer, text_seekbar;
     private SeekBar seekBar_volume;
-    private long startTime, totalTime;
+    private long startTime;
     private int record_source, record_tempSource, record_source_index, play_type, play_tempType, play_type_index;
     private int record_channel, record_tempChannel, record_channel_index, play_channel, play_tempChannel, play_channel_index;
     private int record_sampleRate, record_tempRate, record_sampleRate_index, play_sampleRate, play_tempRate, play_sampleRate_index;
     private int record_bufferSize, record_tempBuffer, record_bufferSize_index;
-    private SwitchMultiButton switchButton;
-
-    private Queue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,12 +151,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     fileDrop = true;
                     editor.putBoolean("fileState", fileDrop);
                     editor.commit();
-                    view_record.recreate();
                 } else if (position == 1) {  // for file drop down
                     fileDrop = false;
                     editor.putBoolean("fileState", fileDrop);
                     editor.commit();
-                    view_record.recreate();
                 }
             }
         });
@@ -178,7 +175,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int permission_record = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
         int permission_writePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int permission_readPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
 
         if (permission_record == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
             myLog.d("RECORD_AUDIO 권한 설정 완료");
@@ -194,14 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this,
                     new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     201);
-        }
-
-        if (permission_readPermission == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
-            myLog.d("READ_EXTERNAL_STORAGE 권한 설정 완료");
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                    301);
         }
     }
 
@@ -229,7 +217,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 builder.setTitle("Exit")
                         .setMessage("Are you sure you want to quit?")
                         .setIcon(getDrawable(R.drawable.ic_baseline_exit_icon))
-                        .setCancelable(false)
                         .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Yes</font>"), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -308,9 +295,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopRecording() {
         myLog.d("method activate");
 
-        recordHandler.removeMessages(0);
-        long stopTime = SystemClock.elapsedRealtime();
-        totalTime = stopTime - startTime;
+//        recordHandler.removeMessages(0);
+//        long stopTime = SystemClock.elapsedRealtime();
+//        totalTime = stopTime - startTime;
 
         img_recording.clearAnimation();
         img_recording.setVisibility(View.INVISIBLE);
@@ -326,11 +313,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         view_play.recreate();
 
-        startTime = 0;
-        totalTime = 0;
-
-        startTime = SystemClock.elapsedRealtime();
-        recordHandler.sendEmptyMessage(0);
+//        startTime = 0;
+//        totalTime = 0;
+//
+//        startTime = SystemClock.elapsedRealtime();
+//        recordHandler.sendEmptyMessage(0);
 
         btn_record.setText("Stop");
         btn_record_bufferSize.setEnabled(true);
