@@ -106,43 +106,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         context = getApplicationContext();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        img_recording = (ImageView) findViewById(R.id.img_recording);
+        img_recording = findViewById(R.id.img_recording);
         view_record = findViewById(R.id.view_record_waveForm);
         view_play = findViewById(R.id.view_play_waveForm);
-        text_record_timer = (TextView) findViewById(R.id.text_record_timer);
-        btn_record_source = (Button) findViewById(R.id.btn_record_source);
+        text_record_timer = findViewById(R.id.text_record_timer);
+        btn_record_source = findViewById(R.id.btn_record_source);
         btn_record_source.setOnClickListener(this);
-        btn_record_channel = (Button) findViewById(R.id.btn_record_channel);
+        btn_record_channel = findViewById(R.id.btn_record_channel);
         btn_record_channel.setOnClickListener(this);
-        btn_record_sampleRate = (Button) findViewById(R.id.btn_record_sampleRate);
+        btn_record_sampleRate = findViewById(R.id.btn_record_sampleRate);
         btn_record_sampleRate.setOnClickListener(this);
-        btn_record_bufferSize = (Button) findViewById(R.id.btn_record_bufferSize);
+        btn_record_bufferSize = findViewById(R.id.btn_record_bufferSize);
         btn_record_bufferSize.setOnClickListener(this);
-        btn_record = (Button) findViewById(R.id.btn_record);
+        btn_record = findViewById(R.id.btn_record);
         btn_record.setOnClickListener(this);
 
-        img_playing = (ImageView) findViewById(R.id.img_playing);
+        img_playing = findViewById(R.id.img_playing);
         view_play = findViewById(R.id.view_play_waveForm);
-        text_play_timer = (TextView) findViewById(R.id.text_play_timer);
-        btn_play_type = (Button) findViewById(R.id.btn_play_type);
+        text_play_timer = findViewById(R.id.text_play_timer);
+        btn_play_type = findViewById(R.id.btn_play_type);
         btn_play_type.setOnClickListener(this);
-        btn_play_channel = (Button) findViewById(R.id.btn_play_channel);
+        btn_play_channel = findViewById(R.id.btn_play_channel);
         btn_play_channel.setOnClickListener(this);
-        btn_play_sampleRate = (Button) findViewById(R.id.btn_play_sampleRate);
+        btn_play_sampleRate = findViewById(R.id.btn_play_sampleRate);
         btn_play_sampleRate.setOnClickListener(this);
-        btn_play_volume = (Button) findViewById(R.id.btn_play_volume);
+        btn_play_volume = findViewById(R.id.btn_play_volume);
         btn_play_volume.setOnClickListener(this);
         final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         int nCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         btn_play_volume.setText("VOLUME\n" + String.valueOf(nCurrentVolume));
-        btn_play = (Button) findViewById(R.id.btn_play);
+        btn_play = findViewById(R.id.btn_play);
         btn_play.setOnClickListener(this);
         btn_play.setEnabled(false);
 
-        switchButton = (SwitchMultiButton) findViewById(R.id.switchButton);
+        switchButton = findViewById(R.id.switchButton);
         switchButton.setOnSwitchListener(new SwitchMultiButton.OnSwitchListener() {
             @Override
             public void onSwitch(int position, String tabText) {
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myLog.d("RECORD_AUDIO 권한 설정 완료");
         } else {
             ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.RECORD_AUDIO},
+                    new String[]{Manifest.permission.RECORD_AUDIO},
                     101);
         }
 
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myLog.d("WRITE_EXTERNAL_STORAGE 권한 설정 완료");
         } else {
             ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     201);
         }
     }
@@ -197,13 +197,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
-        myAudioRecord.init(record_sampleRate, record_bufferSize, view_record);
+        myAudioRecord.init(record_sampleRate, record_bufferSize);
 
         myAudioTrack = new org.techtown.samplerecorder.AudioTrack();
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_toolbar, menu);
         return true;
@@ -285,8 +285,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopRecording();
         } else {  // if "RECORD" button clicked,
             allInit();
+            view_record.recreate();
             queue = new Queue();
-            myAudioRecord.start(record_source, record_channel, record_sampleRate, view_record, queue);
+            myAudioRecord.start(record_source, record_channel, record_sampleRate, queue);
             isRecording = true;
             startRecording();
         }
@@ -295,9 +296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopRecording() {
         myLog.d("method activate");
 
-//        recordHandler.removeMessages(0);
-//        long stopTime = SystemClock.elapsedRealtime();
-//        totalTime = stopTime - startTime;
+        recordHandler.removeMessages(0);
 
         img_recording.clearAnimation();
         img_recording.setVisibility(View.INVISIBLE);
@@ -313,11 +312,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         view_play.recreate();
 
-//        startTime = 0;
-//        totalTime = 0;
-//
-//        startTime = SystemClock.elapsedRealtime();
-//        recordHandler.sendEmptyMessage(0);
+        Message msg = recordHandler.obtainMessage();
+        msg.what = 1;
+        startTime = SystemClock.elapsedRealtime();
+        recordHandler.sendMessage(msg);
 
         btn_record.setText("Stop");
         btn_record_bufferSize.setEnabled(true);
@@ -345,8 +343,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopPlaying();
         } else {  // if "PLAY" button clicked,
             isPlaying = true;
+            view_play.recreate();
             myAudioTrack.init(play_sampleRate, record_bufferSize);
-            myAudioTrack.play(play_type, play_channel, play_sampleRate, view_play, queue);
+            myAudioTrack.play(play_type, play_channel, play_sampleRate, queue);
             startPlaying();
         }
     }
@@ -354,28 +353,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void stopPlaying() {
 //        myLog.d("method activate");
 
+        playHandler.removeMessages(0);
+        autoStopHandler.removeMessages(0);
+
         img_playing.clearAnimation();
         img_playing.setVisibility(View.INVISIBLE);
         btn_record.setEnabled(true);
         btn_play.setText("Play");
         btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
-
-        playHandler.removeMessages(0);
-        autoStopHandler.removeMessages(0);
     }
 
     public void startPlaying() {
 //        myLog.d("method activate");
+
+        startTime = SystemClock.elapsedRealtime();
+        Message msg2 = playHandler.obtainMessage();
+        msg2.what = 1;
+        playHandler.sendMessage(msg2);
+        Message msg3 = autoStopHandler.obtainMessage();
+        msg3.what = 1;
+        autoStopHandler.sendMessage(msg3);
 
         img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
         btn_play.setText("Stop");
         btn_play.setBackground(getDrawable(R.drawable.btn_inactive));
         text_play_timer.setVisibility(View.VISIBLE);
-
-        startTime = SystemClock.elapsedRealtime();
-        playHandler.sendEmptyMessage(0);
-        autoStopHandler.sendEmptyMessage(0);
 
         Animation animation = new AlphaAnimation(1, 0);
         animation.setDuration(500);
@@ -388,14 +391,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void record_source() {
 //        myLog.d("method activate");
 
-        final String[] source = new String[] {"DEFAULT", "MIC", "VOICE COMMUNICATION", "VOICE PERFORMANCE", "VOICE RECOGNITION"};
+        final String[] source = new String[]{"DEFAULT", "MIC", "VOICE COMMUNICATION", "VOICE PERFORMANCE", "VOICE RECOGNITION"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_source_icon))
                 .setTitle("Source")
                 .setSingleChoiceItems(source, record_source_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(source[which]) {
+                        switch (source[which]) {
                             case "DEFAULT":
                                 record_tempSource = MediaRecorder.AudioSource.DEFAULT;
                                 record_source = record_tempSource;
@@ -428,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(record_source) {
+                        switch (record_source) {
                             case MediaRecorder.AudioSource.DEFAULT:
                                 btn_record_source.setText("SOURCE\nDEFAULT");
                                 Toast.makeText(MainActivity.this, "DEFAULT로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -468,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void record_channel() {
 //        myLog.d("method activate");
 
-        final String[] channel = new String[] {"MONO", "STEREO"};
+        final String[] channel = new String[]{"MONO", "STEREO"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_record_channel))
                 .setTitle("Channel")
@@ -515,14 +518,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void record_sampleRate() {
 //        myLog.d("method activate");
 
-        final String[] sampleRate = new String[] {"8,000", "11,025", "16,000", "22,050", "44,100"};
+        final String[] sampleRate = new String[]{"8,000", "11,025", "16,000", "22,050", "44,100"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_record_samplerate))
                 .setTitle("Sample Rate")
                 .setSingleChoiceItems(sampleRate, record_sampleRate_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(sampleRate[which]) {
+                        switch (sampleRate[which]) {
                             case "8,000":
                                 record_tempRate = 8000;
                                 record_sampleRate = record_tempRate;
@@ -561,7 +564,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         playHandler.removeMessages(0);
-                        switch(record_sampleRate) {
+                        switch (record_sampleRate) {
                             case 8000:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n8,000");
                                 Toast.makeText(MainActivity.this, "8,000으로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -603,14 +606,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void record_bufferSize() {
 //        myLog.d("method activate");
 
-        final String[] bufferSize = new String[] {"512", "1,024", "2,048"};
+        final String[] bufferSize = new String[]{"512", "1,024", "2,048"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_buffersize))
                 .setTitle("Buffer Size")
                 .setSingleChoiceItems(bufferSize, record_bufferSize_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(bufferSize[which]) {
+                        switch (bufferSize[which]) {
                             case "512":
                                 record_tempBuffer = 512;
                                 record_bufferSize = record_tempBuffer;
@@ -633,7 +636,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(record_bufferSize) {
+                        switch (record_bufferSize) {
                             case 512:
                                 btn_record_bufferSize.setText("BUFFER SIZE\n512");
                                 Toast.makeText(MainActivity.this, "512로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -665,14 +668,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void play_type() {
 //        myLog.d("method activate");
 
-        final String[] type = new String[] {"MUSIC", "MOVIE", "SPEECH"};
+        final String[] type = new String[]{"MUSIC", "MOVIE", "SPEECH"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_type))
                 .setTitle("Play Type")
                 .setSingleChoiceItems(type, play_type_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(type[which]) {
+                        switch (type[which]) {
                             case "MUSIC":
                                 play_tempType = AudioAttributes.CONTENT_TYPE_MUSIC;
                                 play_type = play_tempType;
@@ -695,7 +698,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(play_type) {
+                        switch (play_type) {
                             case AudioAttributes.CONTENT_TYPE_MUSIC:
                                 btn_play_type.setText("TYPE\nMUSIC");
                                 Toast.makeText(MainActivity.this, "MUSIC으로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -727,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void play_channel() {
 //        myLog.d("method activate");
 
-        final String[] channel = new String[] {"MONO", "STEREO"};
+        final String[] channel = new String[]{"MONO", "STEREO"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_play_channel))
                 .setTitle("Sample Rate")
@@ -774,14 +777,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void play_sampleRate() {
 //        myLog.d("method activate");
 
-        final String[] freqArray = new String[] {"8,000", "11,025", "16,000", "22,050", "44,100"};
+        final String[] freqArray = new String[]{"8,000", "11,025", "16,000", "22,050", "44,100"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_play_samplerate))
                 .setTitle("Sample Rate")
                 .setSingleChoiceItems(freqArray, play_sampleRate_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(freqArray[which]) {
+                        switch (freqArray[which]) {
                             case "8,000":
                                 play_tempRate = 8000;
                                 play_sampleRate = play_tempRate;
@@ -816,7 +819,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         play_sampleRate = play_tempRate;
                         playHandler.removeMessages(0);
-                        switch(play_sampleRate) {
+                        switch (play_sampleRate) {
                             case 8000:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n8,000");
                                 Toast.makeText(MainActivity.this, "8,000으로 설정 완료", Toast.LENGTH_SHORT).show();
@@ -923,57 +926,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    public String getTime() {
+        long nowTime = SystemClock.elapsedRealtime();
+        long overTime = nowTime - startTime;
+
+        long min = overTime / 1000 / 60;
+        long sec = (overTime / 1000) % 60;
+        long msec = overTime % 1000 / 10;
+
+        String timeText = String.format("%02d : %02d : %02d", min, sec, msec);
+
+        return timeText;
+    }
+
     Handler recordHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_record_timer.setText(getRecordTime());
-
+            text_record_timer.setText(getTime());
+            view_record.update(AudioRecord.dataMax);
             recordHandler.sendEmptyMessage(0);
         }
     };
 
-    public String getRecordTime() {
-        long nowTime = SystemClock.elapsedRealtime();
-        long overTime = nowTime - startTime;
-
-        long m = overTime / 1000 / 60;
-        long s = (overTime / 1000) % 60;
-        long ms = overTime % 1000 / 10;
-
-        String timeText = String.format("%02d : %02d : %02d", m, s, ms);
-
-        return timeText;
-    }
-
     Handler playHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_play_timer.setText(getPlayTime());
-
+            text_play_timer.setText(getTime());
+            view_play.update(AudioTrack.dataMax);
             playHandler.sendEmptyMessage(0);
         }
     };
-
-    public String getPlayTime() {
-        long nowTime = SystemClock.elapsedRealtime();
-        long overTime = nowTime - startTime;
-        long min, sec, msec;
-        String timeText;
-
-        min = overTime / 1000 / 60;
-        sec = (overTime / 1000) % 60;
-        msec = overTime % 1000 / 10;
-
-        timeText = String.format("%02d : %02d : %02d", min, sec, msec);
-
-        return timeText;
-    }
 
     Handler autoStopHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
             if (autoStop) {
                 myLog.d("autoStop 발생!");
+
                 autoStop = false;
                 isPlaying = false;
                 myAudioTrack.stop();

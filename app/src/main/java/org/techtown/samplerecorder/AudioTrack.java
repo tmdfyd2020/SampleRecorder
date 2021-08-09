@@ -3,33 +3,30 @@ package org.techtown.samplerecorder;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 
-import com.visualizer.amplitude.AudioRecordView;
-
 import java.nio.ShortBuffer;
 
 public class AudioTrack {
+
+    public static int dataMax;
 
     private android.media.AudioTrack audioTrack = null;
     private Thread playThread = null;
     private ShortBuffer shortBuffer = null;
     private short[] audioData = null;
-    private int capacity_buffer, len_audioData, dataMax;
-    int len_write;
+    private int capacity_buffer, len_audioData;
 
     public void init(int sampleRate, int bufferSize) {
 //        myLog.d("method activate");
 
-        capacity_buffer = sampleRate * 60;  // stored buffer size (60s)
+        capacity_buffer = sampleRate * 240;  // stored buffer size (60s)
         shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         audioData = new short[bufferSize];
         len_audioData = audioData.length;
     }
 
-    public void play(int type, int channel, int sampleRate, AudioRecordView view_play, Queue queue) {
+    public void play(int type, int channel, int sampleRate, Queue queue) {
 //        myLog.d("method activate");
-
-        view_play.recreate();
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack.Builder()
@@ -55,10 +52,9 @@ public class AudioTrack {
                 shortBuffer = queue.dequeue();
                 shortBuffer.position(0);
 
-                len_write = 0;
                 while (MainActivity.isPlaying) {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
-                    len_write = audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
+                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
 
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
@@ -66,8 +62,6 @@ public class AudioTrack {
                             dataMax = Math.abs(audioData[i]);
                         }
                     }
-
-                    view_play.update(dataMax);
 
                     if ((audioData[audioData.length - 1] == AudioRecord.lastData_1) && (audioData[audioData.length - 2] == AudioRecord.lastData_2)) {
                         MainActivity.autoStop = true;
