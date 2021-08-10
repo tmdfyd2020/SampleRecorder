@@ -55,7 +55,6 @@ public class AudioTrack {
                 while (MainActivity.isPlaying) {
                     shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
                     audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
-
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
                         if (Math.abs(audioData[i]) >= dataMax) {
@@ -63,7 +62,7 @@ public class AudioTrack {
                         }
                     }
 
-                    if ((audioData[audioData.length - 1] == AudioRecord.lastData_1) && (audioData[audioData.length - 2] == AudioRecord.lastData_2)) {
+                    if ((audioData[audioData.length - 1] == AudioRecord.lastData_1) && (audioData[audioData.length - 2] == AudioRecord.lastData_2) && (audioData[audioData.length - 3] == AudioRecord.lastData_3)) {
                         MainActivity.autoStop = true;
                         break;
                     }

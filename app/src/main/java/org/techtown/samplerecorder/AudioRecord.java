@@ -14,7 +14,7 @@ import java.util.Date;
 
 public class AudioRecord {
 
-    public static short lastData_1, lastData_2;
+    public static short lastData_1, lastData_2, lastData_3;
     public static int dataMax;
 
     private android.media.AudioRecord audioRecord = null;
@@ -26,7 +26,7 @@ public class AudioRecord {
     private int capacity_buffer, record_bufferSize, len_audioData;
 
     public void init(int sampleRate, int bufferSize) {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         audioData = null;
         shortBuffer = null;
@@ -39,7 +39,7 @@ public class AudioRecord {
     }
 
     public void start(int source, int channel, int sampleRate, Queue queue) {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
@@ -74,7 +74,7 @@ public class AudioRecord {
                 while(MainActivity.isRecording) {
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
-//                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
+                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
 
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
@@ -85,7 +85,7 @@ public class AudioRecord {
 
                     if (MainActivity.fileDrop) {
                         try {
-                            outputStream.write(shortToByte_1(audioData), 0, len_audioData);
+                            outputStream.write(shortToByte(audioData), 0, len_audioData);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -93,15 +93,16 @@ public class AudioRecord {
                 }
                 lastData_1 = audioData[len_audioData - 1];
                 lastData_2 = audioData[len_audioData - 2];
+                lastData_3 = audioData[len_audioData - 3];
 
-                queue.enqueue(shortBuffer);  // shortBuffer -> queue
+//                queue.enqueue(shortBuffer);  // shortBuffer -> queue
             }
         });
         recordThread.start();
     }
 
     public void stop() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         if (audioRecord != null) {
             if (audioRecord.getState() != android.media.AudioRecord.RECORDSTATE_STOPPED) {
@@ -119,7 +120,7 @@ public class AudioRecord {
     }
 
     public void release(Context context) {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         if (MainActivity.fileDrop) {
             try {
@@ -141,7 +142,7 @@ public class AudioRecord {
     }
 
     // short[] -> byte[]
-    private byte[] shortToByte_1(short[] sData) {
+    private byte[] shortToByte(short[] sData) {
 
         int shortArrsize = sData.length;
         byte[] bytes = new byte[shortArrsize * 2];

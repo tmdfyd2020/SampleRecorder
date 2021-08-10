@@ -359,8 +359,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_playing.clearAnimation();
         img_playing.setVisibility(View.INVISIBLE);
         btn_record.setEnabled(true);
+        btn_play.clearAnimation();
         btn_play.setText("Play");
-        btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
     }
 
     public void startPlaying() {
@@ -377,7 +377,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
         btn_play.setText("Stop");
-        btn_play.setBackground(getDrawable(R.drawable.btn_inactive));
         text_play_timer.setVisibility(View.VISIBLE);
 
         Animation animation = new AlphaAnimation(1, 0);
@@ -386,6 +385,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         animation.setRepeatCount(Animation.INFINITE);
         animation.setRepeatMode(Animation.REVERSE);
         img_playing.startAnimation(animation);
+        btn_play.startAnimation(animation);
     }
 
     public void record_source() {
@@ -971,8 +971,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 img_playing.clearAnimation();
                 img_playing.setVisibility(View.INVISIBLE);
                 btn_record.setEnabled(true);
+                btn_play.clearAnimation();
                 btn_play.setText("Play");
-                btn_play.setBackground(getDrawable(R.drawable.btn_play_active));
 
                 playHandler.removeMessages(0);
                 autoStopHandler.removeMessages(0);
