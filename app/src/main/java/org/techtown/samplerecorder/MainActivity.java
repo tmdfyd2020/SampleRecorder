@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private org.techtown.samplerecorder.AudioRecord myAudioRecord;
     private org.techtown.samplerecorder.AudioTrack myAudioTrack;
-    private AudioRecordView view_record, view_play;
+    private AudioRecordView view_waveform;
     private SwitchMultiButton switchButton;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btn_record, btn_record_source, btn_record_channel, btn_record_sampleRate, btn_record_bufferSize;
     private Button btn_play, btn_play_type, btn_play_channel, btn_play_sampleRate, btn_play_volume;
     private ImageView img_recording, img_playing, img_seekbar;
-    private TextView text_record_timer, text_play_timer, text_seekbar;
+    private TextView text_timer, text_seekbar;
     private SeekBar seekBar_volume;
     private long startTime;
     private int record_source, record_tempSource, record_source_index, play_type, play_tempType, play_type_index;
@@ -110,9 +110,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
 
         img_recording = findViewById(R.id.img_recording);
-        view_record = findViewById(R.id.view_record_waveForm);
-        view_play = findViewById(R.id.view_play_waveForm);
-        text_record_timer = findViewById(R.id.text_record_timer);
+        view_waveform = findViewById(R.id.view_waveForm);
+        text_timer = findViewById(R.id.text__timer);
         btn_record_source = findViewById(R.id.btn_record_source);
         btn_record_source.setOnClickListener(this);
         btn_record_channel = findViewById(R.id.btn_record_channel);
@@ -125,8 +124,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setOnClickListener(this);
 
         img_playing = findViewById(R.id.img_playing);
-        view_play = findViewById(R.id.view_play_waveForm);
-        text_play_timer = findViewById(R.id.text_play_timer);
         btn_play_type = findViewById(R.id.btn_play_type);
         btn_play_type.setOnClickListener(this);
         btn_play_channel = findViewById(R.id.btn_play_channel);
@@ -285,7 +282,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopRecording();
         } else {  // if "RECORD" button clicked,
             allInit();
-            view_record.recreate();
+            view_waveform.recreate();
+            view_waveform.setChunkColor(getResources().getColor(R.color.record_red));
             queue = new Queue();
             myAudioRecord.start(record_source, record_channel, record_sampleRate, queue);
             isRecording = true;
@@ -310,8 +308,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void startRecording() {
         myLog.d("method activate");
 
-        view_play.recreate();
-
         Message msg = recordHandler.obtainMessage();
         msg.what = 1;
         startTime = SystemClock.elapsedRealtime();
@@ -320,8 +316,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setText("Stop");
         btn_record_bufferSize.setEnabled(true);
         img_recording.setVisibility(View.VISIBLE);
-        text_record_timer.setVisibility(View.VISIBLE);
-        text_play_timer.setVisibility(View.INVISIBLE);
+        text_timer.setVisibility(View.VISIBLE);
 
         // animation set at recording image emerge
         Animation animation = new AlphaAnimation(1, 0);
@@ -343,7 +338,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopPlaying();
         } else {  // if "PLAY" button clicked,
             isPlaying = true;
-            view_play.recreate();
+            view_waveform.recreate();
+            view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
             myAudioTrack.init(play_sampleRate, record_bufferSize);
             myAudioTrack.play(play_type, play_channel, play_sampleRate, queue);
             startPlaying();
@@ -377,7 +373,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
         btn_play.setText("Stop");
-        text_play_timer.setVisibility(View.VISIBLE);
 
         Animation animation = new AlphaAnimation(1, 0);
         animation.setDuration(500);
@@ -942,8 +937,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler recordHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_record_timer.setText(getTime());
-            view_record.update(AudioRecord.dataMax);
+            text_timer.setText(getTime());
+            view_waveform.update(AudioRecord.dataMax);
             recordHandler.sendEmptyMessage(0);
         }
     };
@@ -951,8 +946,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler playHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_play_timer.setText(getTime());
-            view_play.update(AudioTrack.dataMax);
+            text_timer.setText(getTime());
+            view_waveform.update(AudioTrack.dataMax);
             playHandler.sendEmptyMessage(0);
         }
     };

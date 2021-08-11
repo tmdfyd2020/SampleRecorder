@@ -18,11 +18,12 @@ public class AudioTrack {
     public void init(int sampleRate, int bufferSize) {
 //        myLog.d("method activate");
 
-        capacity_buffer = sampleRate * 240;  // stored buffer size (60s)
-        shortBuffer = ShortBuffer.allocate(capacity_buffer);
+//        capacity_buffer = sampleRate * 240;  // stored buffer size (60s)
+//        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         audioData = new short[bufferSize];
-        len_audioData = audioData.length;
+
+        len_audioData = bufferSize;
     }
 
     public void play(int type, int channel, int sampleRate, Queue queue) {
@@ -39,7 +40,7 @@ public class AudioTrack {
                             .setSampleRate(sampleRate)
                             .setChannelMask(channel)
                             .build())
-                    .setBufferSizeInBytes(audioData.length)
+                    .setBufferSizeInBytes(len_audioData * 2)
                     .build();
         }
 
@@ -49,12 +50,11 @@ public class AudioTrack {
 
                 audioTrack.play();
 
-                shortBuffer = queue.dequeue();
-                shortBuffer.position(0);
-
                 while (MainActivity.isPlaying) {
-                    shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
-                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
+
+                    audioData = queue.dequeue();  // 주로 마지막 부분이 반영되어 반복됨
+                    audioTrack.write(audioData, 0, len_audioData);
+
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
                         if (Math.abs(audioData[i]) >= dataMax) {
@@ -62,15 +62,53 @@ public class AudioTrack {
                         }
                     }
 
-                    if ((audioData[audioData.length - 1] == AudioRecord.lastData_1) && (audioData[audioData.length - 2] == AudioRecord.lastData_2) && (audioData[audioData.length - 3] == AudioRecord.lastData_3)) {
+                    if (queue.isEmpty()) {
+                        queue.copy();
                         MainActivity.autoStop = true;
                         break;
                     }
 
                 }
+                // queue.copy();
             }
 
         });
+
+//        playThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//                audioTrack.play();
+//
+//                shortBuffer = queue.dequeue();
+//                shortBuffer.position(0);
+//
+//                while (MainActivity.isPlaying) {
+//                    shortBuffer.get(audioData, 0, len_audioData);  // shortBuffer -> audioData
+//                    audioTrack.write(audioData, 0, len_audioData);  // audioData -> audioTrack
+//                    dataMax = 0;
+//                    for (int i = 0; i < audioData.length; i++) {
+//                        if (Math.abs(audioData[i]) >= dataMax) {
+//                            dataMax = Math.abs(audioData[i]);
+//                        }
+//                    }
+//
+//                    if ((audioData[audioData.length - 1] == AudioRecord.lastData_1) && (audioData[audioData.length - 2] == AudioRecord.lastData_2) && (audioData[audioData.length - 3] == AudioRecord.lastData_3)) {
+//                        MainActivity.autoStop = true;
+//                        break;
+//                    }
+//
+//                }
+//            }
+//
+//        })
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         playThread.start();
     }
 

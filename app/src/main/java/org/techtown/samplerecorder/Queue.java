@@ -1,29 +1,44 @@
 package org.techtown.samplerecorder;
 
-import java.nio.ShortBuffer;
 import java.util.LinkedList;
 
 public class Queue {
 
-    java.util.Queue<ShortBuffer> queue;
+    java.util.Queue<short[]> queue;
+    java.util.Queue<short[]> store;
 
     public Queue() {
 //        myLog.d("constructor activate");
 
         queue = null;
-        queue = new LinkedList<ShortBuffer>();
+        queue = new LinkedList<short[]>();
+        store = new LinkedList<short[]>();
     }
 
-    public void enqueue(ShortBuffer shortBuffer) {
+    public void enqueue(short[] data) {
 //        myLog.d("method activate");
 
-        queue.add(shortBuffer);
+        queue.offer(data);
+        store.offer(data);
     }
 
-    public ShortBuffer dequeue() {
+    public short[] dequeue() {
 //        myLog.d("method activate");
 
-        return queue.peek();
+        return queue.poll();
+    }
+
+    public void copy() {
+//        myLog.d("method activate");
+        
+        queue.addAll(store);
+    }
+
+
+    public boolean isEmpty() {
+//        myLog.d("method activate");
+
+        return queue.isEmpty();
     }
 
 }

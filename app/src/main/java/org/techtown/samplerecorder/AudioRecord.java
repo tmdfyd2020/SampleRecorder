@@ -31,8 +31,8 @@ public class AudioRecord {
         audioData = null;
         shortBuffer = null;
 
-        capacity_buffer = sampleRate * 240;  // stored buffer size (240s)
-        shortBuffer = ShortBuffer.allocate(capacity_buffer);
+//        capacity_buffer = sampleRate * 240;  // stored buffer size (240s)
+//        shortBuffer = ShortBuffer.allocate(capacity_buffer);
 
         record_bufferSize = bufferSize;
         audioData = new short[record_bufferSize];
@@ -68,13 +68,12 @@ public class AudioRecord {
             @Override
             public void run() {
 
-                shortBuffer.rewind();
-
                 len_audioData = 0;
                 while(MainActivity.isRecording) {
+                    audioData = new short[record_bufferSize];
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
-                    shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
-                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
+                    queue.enqueue(audioData);  // 반환 값 true 제대로 들어가는 거 확인
+                    // queue.reWrite(audioData);
 
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
@@ -90,14 +89,46 @@ public class AudioRecord {
                             e.printStackTrace();
                         }
                     }
-                }
-                lastData_1 = audioData[len_audioData - 1];
-                lastData_2 = audioData[len_audioData - 2];
-                lastData_3 = audioData[len_audioData - 3];
 
-//                queue.enqueue(shortBuffer);  // shortBuffer -> queue
+                }
             }
         });
+
+//        recordThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//                shortBuffer.rewind();
+//
+//                len_audioData = 0;
+//                while(MainActivity.isRecording) {
+//                    len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
+//                    shortBuffer.put(audioData, 0, len_audioData);  // audioData -> shortBuffer
+//                    queue.enqueue(shortBuffer);  // shortBuffer -> queue
+//
+//                    dataMax = 0;
+//                    for (int i = 0; i < audioData.length; i++) {
+//                        if(Math.abs(audioData[i]) >= dataMax) {
+//                            dataMax = Math.abs(audioData[i]);
+//                        }
+//                    }
+//
+//                    if (MainActivity.fileDrop) {
+//                        try {
+//                            outputStream.write(shortToByte(audioData), 0, len_audioData);
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//                lastData_1 = audioData[len_audioData - 1];
+//                lastData_2 = audioData[len_audioData - 2];
+//                lastData_3 = audioData[len_audioData - 3];
+//
+////                queue.enqueue(shortBuffer);  // shortBuffer -> queue
+//            }
+//        });
+
         recordThread.start();
     }
 
