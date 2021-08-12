@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.Main;
 
 import java.util.LinkedList;
 

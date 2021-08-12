@@ -1,9 +1,10 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.Main;
 
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
@@ -38,6 +39,9 @@ import androidx.core.content.ContextCompat;
 
 import com.visualizer.amplitude.AudioRecordView;
 
+import org.techtown.samplerecorder.List;
+import org.techtown.samplerecorder.R;
+
 import lib.kingja.switchbutton.SwitchMultiButton;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -47,8 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static boolean fileDrop;
     public static boolean autoStop = false;
 
-    private org.techtown.samplerecorder.AudioRecord myAudioRecord;
-    private org.techtown.samplerecorder.AudioTrack myAudioTrack;
+    private AudioRecord myAudioRecord;
+    private AudioTrack myAudioTrack;
     private AudioRecordView view_waveform;
     private SwitchMultiButton switchButton;
     private SharedPreferences sharedPreferences;
@@ -72,11 +76,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         permissionCheck();
-        constant_init();
+        init_constant();
         init();
     }
 
-    public void constant_init() {
+    public void init_constant() {
         record_source = MediaRecorder.AudioSource.MIC;
         record_tempSource = record_source;
         record_source_index = 1;
@@ -104,10 +108,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void init() {
 //        myLog.d("method activate");
 
+        myAudioRecord = new AudioRecord();
+        myAudioTrack = new AudioTrack();
+
         context = getApplicationContext();
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        Toolbar toolbar_main = findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar_main);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         img_recording = findViewById(R.id.img_recording);
         view_waveform = findViewById(R.id.view_waveForm);
@@ -144,11 +152,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onSwitch(int position, String tabText) {
 
-                if (position == 0) {  // for file drop open
+                if (position == 0) {  // for file drop on
+                    int permission_writePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    if (permission_writePermission == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+                        myLog.d("WRITE_EXTERNAL_STORAGE 권한 설정 완료");
+                    } else {
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                201);
+                    }
+
                     fileDrop = true;
                     editor.putBoolean("fileState", fileDrop);
                     editor.commit();
-                } else if (position == 1) {  // for file drop down
+                } else if (position == 1) {  // for file drop off
                     fileDrop = false;
                     editor.putBoolean("fileState", fileDrop);
                     editor.commit();
@@ -158,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         sharedPreferences = getSharedPreferences("fileDrop", MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        fileDrop = sharedPreferences.getBoolean("fileState", true);
+        fileDrop = sharedPreferences.getBoolean("fileState", false);
 
         if (fileDrop) {
             switchButton.setSelectedTab(0);
@@ -171,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         int permission_record = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
-        int permission_writePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         if (permission_record == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
             myLog.d("RECORD_AUDIO 권한 설정 완료");
@@ -180,29 +196,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new String[]{Manifest.permission.RECORD_AUDIO},
                     101);
         }
-
-        if (permission_writePermission == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
-            myLog.d("WRITE_EXTERNAL_STORAGE 권한 설정 완료");
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    201);
-        }
-    }
-
-    public void allInit() {
-//        myLog.d("method activate");
-
-        myAudioRecord = new org.techtown.samplerecorder.AudioRecord();
-        myAudioRecord.init(record_sampleRate, record_bufferSize);
-
-        myAudioTrack = new org.techtown.samplerecorder.AudioTrack();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_toolbar, menu);
+        menuInflater.inflate(R.menu.menu_main_toolbar, menu);
         return true;
     }
 
@@ -230,6 +229,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Dialog dialog = builder.create();
                 dialog.getWindow().setGravity(Gravity.CENTER);
                 dialog.show();
+                break;
+
+            case R.id.list_play:
+                int permission_readPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
+                if (permission_readPermission == PackageManager.PERMISSION_GRANTED) {  // 권한이 있을 때
+                    myLog.d("READ_EXTERNAL_STORAGE 권한 설정 완료");
+                } else {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            301);
+                }
+
+                Intent intent = new Intent(this, List.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
                 break;
         }
 
@@ -281,10 +295,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isRecording = false;  // check : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // if "RECORD" button clicked,
-            allInit();
-            view_waveform.recreate();
-            view_waveform.setChunkColor(getResources().getColor(R.color.record_red));
+            // allInit();
             queue = new Queue();
+            myAudioRecord.init(record_bufferSize);
             myAudioRecord.start(record_source, record_channel, record_sampleRate, queue);
             isRecording = true;
             startRecording();
@@ -307,6 +320,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startRecording() {
         myLog.d("method activate");
+
+        view_waveform.recreate();
+        view_waveform.setChunkColor(getResources().getColor(R.color.record_red));
 
         Message msg = recordHandler.obtainMessage();
         msg.what = 1;
@@ -338,9 +354,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             stopPlaying();
         } else {  // if "PLAY" button clicked,
             isPlaying = true;
-            view_waveform.recreate();
-            view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
-            myAudioTrack.init(play_sampleRate, record_bufferSize);
+            myAudioTrack.init(record_bufferSize);
             myAudioTrack.play(play_type, play_channel, play_sampleRate, queue);
             startPlaying();
         }
@@ -361,6 +375,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startPlaying() {
 //        myLog.d("method activate");
+
+        view_waveform.recreate();
+        view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
 
         startTime = SystemClock.elapsedRealtime();
         Message msg2 = playHandler.obtainMessage();
@@ -394,31 +411,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (source[which]) {
-                            case "DEFAULT":
+                            case "DEFAULT":  // Default audio source *
                                 record_tempSource = MediaRecorder.AudioSource.DEFAULT;
                                 record_source = record_tempSource;
                                 btn_record_source.setText("SOURCE\nDEFAULT");
-                                break;  // Default audio source *
-                            case "MIC":
+                                break;
+                            case "MIC":  // Microphone audio source
                                 record_tempSource = MediaRecorder.AudioSource.MIC;
                                 record_source = record_tempSource;
                                 btn_record_source.setText("SOURCE\nMIC");
-                                break;  // Microphone audio source
-                            case "VOICE COMMUNICATION":
+                                break;
+                            case "VOICE COMMUNICATION":  // Microphone audio source tuned for voice communications such as VoIP.
                                 record_tempSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
                                 record_source = record_tempSource;
                                 btn_record_source.setText("SOURCE\nVOICE COMMUNICATION");
-                                break;  // Microphone audio source tuned for voice communications such as VoIP.
-                            case "VOICE PERFORMANCE":
+                                break;
+                            case "VOICE PERFORMANCE":  // Source for capturing audio meant to be processed in real time and played back for live performance (e.g karaoke).
                                 record_tempSource = MediaRecorder.AudioSource.VOICE_PERFORMANCE;
                                 record_source = record_tempSource;
                                 btn_record_source.setText("SOURCE\nVOICE PERFORMANCE");
-                                break;  // Source for capturing audio meant to be processed in real time and played back for live performance (e.g karaoke).
-                            case "VOICE RECOGNITION":
+                                break;
+                            case "VOICE RECOGNITION":  // Microphone audio source tuned for voice recognition.
                                 record_tempSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
                                 record_source = record_tempSource;
                                 btn_record_source.setText("SOURCE\nVOICE RECOGNITION");
-                                break;  // Microphone audio source tuned for voice recognition.
+                                break;
                         }
                         record_source_index = which;
                     }
@@ -879,13 +896,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         seekBar_volume.setProgress(nCurrentVolume);
         if (nCurrentVolume >= 13) {
             text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
-            img_seekbar.setImageResource(R.drawable.speaker_volume2);
+            img_seekbar.setImageResource(R.drawable.png_volume_loud);
         } else if (nCurrentVolume >= 10 && nCurrentVolume < 13) {
             text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
-            img_seekbar.setImageResource(R.drawable.speaker_volume2);
+            img_seekbar.setImageResource(R.drawable.png_volume_loud);
         } else {
             text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
-            img_seekbar.setImageResource(R.drawable.speaker_volume1);
+            img_seekbar.setImageResource(R.drawable.png_volume_small);
         }
         text_seekbar.setText(String.valueOf(nCurrentVolume));
         seekBar_volume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -895,13 +912,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
                 if (progress >= 13) {
                     text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
-                    img_seekbar.setImageResource(R.drawable.speaker_volume2);
+                    img_seekbar.setImageResource(R.drawable.png_volume_loud);
                 } else if (progress >= 10 && progress < 13) {
                     text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
-                    img_seekbar.setImageResource(R.drawable.speaker_volume2);
+                    img_seekbar.setImageResource(R.drawable.png_volume_loud);
                 } else {
                     text_seekbar.setTextColor(getResources().getColor(R.color.play_blue));
-                    img_seekbar.setImageResource(R.drawable.speaker_volume1);
+                    img_seekbar.setImageResource(R.drawable.png_volume_small);
                 }
                 text_seekbar.setText(String.valueOf(progress));
                 btn_play_volume.setText("VOLUME\n" + String.valueOf(progress));

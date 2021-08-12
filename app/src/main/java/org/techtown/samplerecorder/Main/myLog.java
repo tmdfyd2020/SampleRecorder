@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.Main;
 
 public class myLog {
     static final String TAG = "[MZ]";
