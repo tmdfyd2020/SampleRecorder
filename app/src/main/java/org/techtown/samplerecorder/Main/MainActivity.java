@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Toolbar toolbar_main = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar_main);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setTitle("음성 녹음");
 
         img_recording = findViewById(R.id.img_recording);
         view_waveform = findViewById(R.id.view_waveForm);

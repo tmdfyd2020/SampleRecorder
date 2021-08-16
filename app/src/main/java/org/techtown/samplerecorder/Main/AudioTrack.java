@@ -20,7 +20,7 @@ public class AudioTrack {
     }
 
     public void play(int type, int channel, int sampleRate, Queue queue) {
-//        myLog.d("method activate");
+        myLog.d("method activate");
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack.Builder()
@@ -59,6 +59,7 @@ public class AudioTrack {
                     for (int i = 0; i < audioData.length; i++) {
                         if (Math.abs(audioData[i]) >= dataMax) {
                             dataMax = Math.abs(audioData[i]);
+                            myLog.d(String.valueOf(audioData[i]));
                         }
                     }
                 }

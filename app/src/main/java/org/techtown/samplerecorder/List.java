@@ -1,36 +1,36 @@
 package org.techtown.samplerecorder;
 
-import androidx.appcompat.app.AlertDialog;
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.Html;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class List extends AppCompatActivity {
+
+    Context context;
+    Activity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
+        context = getApplicationContext();
+
         Toolbar toolbar_main = findViewById(R.id.toolbar_list);
         setSupportActionBar(toolbar_main);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setTitle("목록");
 
         // 리사이클러뷰에 표시할 데이터 리스트 생성.
         File filePath = new File("/mnt/sdcard/audioDrop/");
@@ -40,6 +40,7 @@ public class List extends AppCompatActivity {
 
         File[] files = filePath.listFiles();
         ArrayList<File> arrayList = new ArrayList<>();
+        Collections.sort(arrayList);
 
         for (int i = 0; i < files.length; i++) {
             if(!files[i].isHidden() && files[i].isFile()) {
@@ -48,12 +49,12 @@ public class List extends AppCompatActivity {
         }
 
         // 리사이클러뷰에 LinearLayoutManager 객체 지정.
-        RecyclerView recyclerView = findViewById(R.id.list_recyclerview) ;
-        recyclerView.setLayoutManager(new LinearLayoutManager(this)) ;
+        RecyclerView recyclerView = findViewById(R.id.list_recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // 리사이클러뷰에 SimpleTextAdapter 객체 지정.
-        Adapter adapter = new Adapter(arrayList) ;
-        recyclerView.setAdapter(adapter) ;
+        Adapter adapter = new Adapter(arrayList, context);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override

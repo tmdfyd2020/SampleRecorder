@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -70,11 +71,13 @@ public class AudioRecord {
                     for (int i = 0; i < audioData.length; i++) {
                         if(Math.abs(audioData[i]) >= dataMax) {
                             dataMax = Math.abs(audioData[i]);
+                            myLog.d(String.valueOf(audioData[i]));
                         }
                     }
 
                     if (MainActivity.fileDrop) {
                         try {
+                            // Track에 소리가 안나온 이유는 이놈이었음!!  shortToByte(audioData)
                             outputStream.write(shortToByte(audioData), 0, len_audioData);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -128,17 +131,18 @@ public class AudioRecord {
         return dateFormat.format(date) + ".pcm";
     }
 
-    // short[] -> byte[]
-    private byte[] shortToByte(short[] data) {
 
-        int shortSize = data.length;
-        byte[] bytes = new byte[shortSize * 2];
+    private byte[] shortToByte(short[] shortData) {
 
-        for (int i = 0; i < shortSize; i++) {
-            bytes[i * 2] = (byte) (data[i] & 0x00FF);
-            bytes[(i * 2) + 1] = (byte) (data[i] >> 8);
-            data[i] = 0;
+        int index;
+        int iterations = shortData.length;
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(shortData.length * 2);
+
+        for(index = 0; index != iterations; ++index) {
+            byteBuffer.putShort(shortData[index]);
         }
-        return bytes;
+
+        return byteBuffer.array();
     }
 }
