@@ -3,20 +3,23 @@ package org.techtown.samplerecorder.Main;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class AudioTrack {
 
     public static int dataMax;
 
     private android.media.AudioTrack audioTrack = null;
     private Thread playThread = null;
-    private short[] audioData = null;
+    private byte[] audioData = null;
     private int track_bufferSize;
 
     public void init(int bufferSize) {
 //        myLog.d("method activate");
 
         track_bufferSize = bufferSize;
-        audioData = new short[track_bufferSize];
+        audioData = new byte[track_bufferSize];
     }
 
     public void play(int type, int channel, int sampleRate, Queue queue) {
@@ -57,10 +60,9 @@ public class AudioTrack {
                     // using draw waveform in MainActivity
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
-                        if (Math.abs(audioData[i]) >= dataMax) {
-                            dataMax = Math.abs(audioData[i]);
-                            myLog.d(String.valueOf(audioData[i]));
-                        }
+                        ByteBuffer buffer = ByteBuffer.wrap(audioData);
+                        buffer.order(ByteOrder.LITTLE_ENDIAN);
+                        dataMax = 10 * Math.abs(buffer.getShort());
                     }
                 }
 

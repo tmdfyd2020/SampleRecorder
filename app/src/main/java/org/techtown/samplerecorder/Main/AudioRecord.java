@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -20,7 +21,7 @@ public class AudioRecord {
     private Thread recordThread = null;
     private FileOutputStream outputStream;
     private File file;
-    private short[] audioData = null;
+    private byte[] audioData = null;
     private int record_bufferSize, len_audioData;
 
     public void init(int bufferSize) {
@@ -62,23 +63,21 @@ public class AudioRecord {
 
                 len_audioData = 0;
                 while(MainActivity.isRecording) {
-                    audioData = new short[record_bufferSize];  // prevent from overwritting data
+                    audioData = new byte[record_bufferSize];  // prevent from overwritting data
                     len_audioData = audioRecord.read(audioData, 0, record_bufferSize);  // audioRecord -> audioData
                     queue.enqueue(audioData);
 
                     // using draw waveform in MainActivity
                     dataMax = 0;
                     for (int i = 0; i < audioData.length; i++) {
-                        if(Math.abs(audioData[i]) >= dataMax) {
-                            dataMax = Math.abs(audioData[i]);
-                            myLog.d(String.valueOf(audioData[i]));
-                        }
+                        ByteBuffer buffer = ByteBuffer.wrap(audioData);
+                        buffer.order(ByteOrder.LITTLE_ENDIAN);
+                        dataMax = 10 * Math.abs(buffer.getShort());
                     }
 
                     if (MainActivity.fileDrop) {
                         try {
-                            // Track에 소리가 안나온 이유는 이놈이었음!!  shortToByte(audioData)
-                            outputStream.write(shortToByte(audioData), 0, len_audioData);
+                            outputStream.write(audioData, 0, len_audioData);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -129,20 +128,5 @@ public class AudioRecord {
         Date date = new Date(realtime);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd_HH_mm_ss");
         return dateFormat.format(date) + ".pcm";
-    }
-
-
-    private byte[] shortToByte(short[] shortData) {
-
-        int index;
-        int iterations = shortData.length;
-
-        ByteBuffer byteBuffer = ByteBuffer.allocate(shortData.length * 2);
-
-        for(index = 0; index != iterations; ++index) {
-            byteBuffer.putShort(shortData[index]);
-        }
-
-        return byteBuffer.array();
     }
 }

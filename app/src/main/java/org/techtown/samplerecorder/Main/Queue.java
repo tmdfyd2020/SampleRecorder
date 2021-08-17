@@ -4,25 +4,25 @@ import java.util.LinkedList;
 
 public class Queue {
 
-    java.util.Queue<short[]> queue;
-    java.util.Queue<short[]> store;
+    java.util.Queue<byte[]> queue;
+    java.util.Queue<byte[]> store;
 
     public Queue() {
 //        myLog.d("constructor activate");
 
         queue = null;
-        queue = new LinkedList<short[]>();
-        store = new LinkedList<short[]>();
+        queue = new LinkedList<byte[]>();
+        store = new LinkedList<byte[]>();
     }
 
-    public void enqueue(short[] data) {
+    public void enqueue(byte[] data) {
 //        myLog.d("method activate");
 
         queue.offer(data);
         store.offer(data);
     }
 
-    public short[] dequeue() {
+    public byte[] dequeue() {
 //        myLog.d("method activate");
 
         return queue.poll();

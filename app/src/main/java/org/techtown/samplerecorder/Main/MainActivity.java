@@ -242,6 +242,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 Intent intent = new Intent(this, List.class);
+                intent.putExtra("sampleRate", play_sampleRate);
+                intent.putExtra("bufferSize", record_bufferSize);
                 intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
                 break;

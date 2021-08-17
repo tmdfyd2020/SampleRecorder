@@ -12,28 +12,54 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_margin="10dp"
-            app:srcCompat="@drawable/music" />
+        android:orientation="vertical" >
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal" >
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/item_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="file name"
-                android:textSize="14sp"
+            <ImageView
+                android:id="@+id/btn_item_play"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_margin="10dp"
-                android:layout_gravity="center_vertical" />
+                app:srcCompat="@drawable/png_play" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/item_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="file name"
+                    android:textSize="14sp"
+                    android:layout_margin="10dp"
+                    android:layout_gravity="center_vertical" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="60dp"
+            android:orientation="vertical" >
+
+            <SeekBar
+                android:id="@+id/seekbar_playState"
+                android:layout_width="200dip"
+                android:layout_height="wrap_content"
+                android:thumb="@drawable/png_thumb"
+                android:progressDrawable="@drawable/seekbar_background"
+                android:layout_gravity="center_horizontal"
+                android:splitTrack="false"
+                android:visibility="gone" />
 
         </LinearLayout>
 
