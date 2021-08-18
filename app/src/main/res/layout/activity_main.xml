@@ -258,7 +258,7 @@
                                 android:layout_width="150dp"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
-                                android:text="TYPE\nMusic"
+                                android:text="TYPE\nMEDIA"
                                 android:textSize="13sp"
                                 android:layout_marginTop="20dp"
                                 android:background="@drawable/btn_play_settings" />

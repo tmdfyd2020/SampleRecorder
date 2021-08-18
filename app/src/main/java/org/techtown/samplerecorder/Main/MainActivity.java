@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -46,6 +47,17 @@ import lib.kingja.switchbutton.SwitchMultiButton;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    final int SAMPLE_RATE_8000 = 8000;
+    final int SAMPLE_RATE_11025 = 11025;
+    final int SAMPLE_RATE_16000 = 16000;
+    final int SAMPLE_RATE_22050 = 22050;
+    final int SAMPLE_RATE_44100 = 44100;
+    final int BUFFER_SIZE_512 = 512;
+    final int BUFFER_SIZE_1024 = 1024;
+    final int BUFFER_SIZE_2048 = 2048;
+    final int MESSAGE_RECORD = 1;
+    final int MESSAGE_PLAY = 2;
+
     public static boolean isRecording = false;
     public static boolean isPlaying = false;
     public static boolean fileDrop;
@@ -64,11 +76,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView img_recording, img_playing, img_seekbar;
     private TextView text_timer, text_seekbar;
     private SeekBar seekBar_volume;
+    private SettingsContentObserver observer;
     private long startTime;
-    private int record_source, record_tempSource, record_source_index, play_type, play_tempType, play_type_index;
-    private int record_channel, record_tempChannel, record_channel_index, play_channel, play_tempChannel, play_channel_index;
-    private int record_sampleRate, record_tempRate, record_sampleRate_index, play_sampleRate, play_tempRate, play_sampleRate_index;
-    private int record_bufferSize, record_tempBuffer, record_bufferSize_index;
+    private int record_source, record_source_index, record_channel, record_channel_index, record_sampleRate, record_sampleRate_index,
+            record_bufferSize, record_bufferSize_index, play_type, volume_type, play_type_index,
+            play_channel, play_channel_index, play_sampleRate, play_sampleRate_index;
+
+    Message message;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,33 +96,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void init_constant() {
         record_source = MediaRecorder.AudioSource.MIC;
-        record_tempSource = record_source;
         record_source_index = 1;
         record_channel = AudioFormat.CHANNEL_IN_MONO;
-        record_tempChannel = record_channel;
         record_channel_index = 0;
         record_sampleRate = 16000;
-        record_tempRate = record_sampleRate;
         record_sampleRate_index = 2;
         record_bufferSize = 1024;
-        record_tempBuffer = record_bufferSize;
         record_bufferSize_index = 1;
 
-        play_type = AudioManager.STREAM_MUSIC;
-        play_tempType = play_type;
+        play_type = AudioAttributes.USAGE_MEDIA;
         play_type_index = 1;
+        volume_type = AudioManager.STREAM_MUSIC;
+        setVolumeControlStream(volume_type);
         play_channel = AudioFormat.CHANNEL_OUT_MONO;
-        play_tempChannel = play_channel;
         play_channel_index = 0;
         play_sampleRate = 16000;
-        play_tempRate = play_sampleRate;
         play_sampleRate_index = 2;
     }
 
     public void init() {
 //        myLog.d("method activate");
 
-        myAudioRecord = new AudioRecord();
         myAudioTrack = new AudioTrack();
 
         context = getApplicationContext();
@@ -182,6 +190,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             switchButton.setSelectedTab(1);
         }
+
+        // real time volume change listener
+        observer = new SettingsContentObserver(new Handler());
+        this.getApplicationContext().getContentResolver().registerContentObserver(
+                android.provider.Settings.System.CONTENT_URI,
+                true,
+                observer
+        );
+    }
+
+    public class SettingsContentObserver extends ContentObserver {
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        public SettingsContentObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public boolean deliverSelfNotifications() {
+            return super.deliverSelfNotifications();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getApplicationContext().getContentResolver().unregisterContentObserver(observer);
     }
 
     public void permissionCheck() {
@@ -297,17 +338,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isRecording = false;  // check : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             stopRecording();
         } else {  // if "RECORD" button clicked,
-            // allInit();
+            myAudioRecord = new AudioRecord();
             queue = new Queue();
             myAudioRecord.init(record_bufferSize);
             myAudioRecord.start(record_source, record_channel, record_sampleRate, queue);
+            myLog.d("MainActivity record sample rate : " + String.valueOf(record_sampleRate));
             isRecording = true;
             startRecording();
         }
     }
 
     public void stopRecording() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         recordHandler.removeMessages(0);
 
@@ -321,15 +363,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void startRecording() {
-        myLog.d("method activate");
+//        myLog.d("method activate");
 
         view_waveform.recreate();
         view_waveform.setChunkColor(getResources().getColor(R.color.record_red));
 
-        Message msg = recordHandler.obtainMessage();
-        msg.what = 1;
         startTime = SystemClock.elapsedRealtime();
-        recordHandler.sendMessage(msg);
+//        Message recordMsg = recordHandler.obtainMessage();
+////        Message recordMsg = new Message();
+//        recordMsg.what = MESSAGE_RECORD;
+        message = recordHandler.obtainMessage();
+        message.what = MESSAGE_RECORD;
+        recordHandler.sendMessage(message);
 
         btn_record.setText("Stop");
         btn_record_bufferSize.setEnabled(true);
@@ -366,7 +411,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         playHandler.removeMessages(0);
-        autoStopHandler.removeMessages(0);
 
         img_playing.clearAnimation();
         img_playing.setVisibility(View.INVISIBLE);
@@ -382,12 +426,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
 
         startTime = SystemClock.elapsedRealtime();
-        Message msg2 = playHandler.obtainMessage();
-        msg2.what = 1;
-        playHandler.sendMessage(msg2);
-        Message msg3 = autoStopHandler.obtainMessage();
-        msg3.what = 1;
-        autoStopHandler.sendMessage(msg3);
+        Message playMsg = playHandler.obtainMessage();
+        playMsg.what = MESSAGE_PLAY;
+        playHandler.sendMessage(playMsg);
 
         img_playing.setVisibility(View.VISIBLE);
         btn_record.setEnabled(false);
@@ -405,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void record_source() {
 //        myLog.d("method activate");
 
-        final String[] source = new String[]{"DEFAULT", "MIC", "VOICE COMMUNICATION", "VOICE PERFORMANCE", "VOICE RECOGNITION"};
+        final String[] source = new String[]{"DEFAULT", "MIC", "VOICE COMMUNICATION", "VOICE PERFORMANCE", "VOICE RECOGNITION", "CAMCORDER", "UNPROCESSED"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_source_icon))
                 .setTitle("Source")
@@ -414,29 +455,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         switch (source[which]) {
                             case "DEFAULT":  // Default audio source *
-                                record_tempSource = MediaRecorder.AudioSource.DEFAULT;
-                                record_source = record_tempSource;
+                                record_source = MediaRecorder.AudioSource.DEFAULT;
                                 btn_record_source.setText("SOURCE\nDEFAULT");
                                 break;
                             case "MIC":  // Microphone audio source
-                                record_tempSource = MediaRecorder.AudioSource.MIC;
-                                record_source = record_tempSource;
+                                record_source = MediaRecorder.AudioSource.MIC;
                                 btn_record_source.setText("SOURCE\nMIC");
                                 break;
                             case "VOICE COMMUNICATION":  // Microphone audio source tuned for voice communications such as VoIP.
-                                record_tempSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
-                                record_source = record_tempSource;
+                                record_source = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
                                 btn_record_source.setText("SOURCE\nVOICE COMMUNICATION");
                                 break;
                             case "VOICE PERFORMANCE":  // Source for capturing audio meant to be processed in real time and played back for live performance (e.g karaoke).
-                                record_tempSource = MediaRecorder.AudioSource.VOICE_PERFORMANCE;
-                                record_source = record_tempSource;
+                                record_source = MediaRecorder.AudioSource.VOICE_PERFORMANCE;
                                 btn_record_source.setText("SOURCE\nVOICE PERFORMANCE");
                                 break;
                             case "VOICE RECOGNITION":  // Microphone audio source tuned for voice recognition.
-                                record_tempSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
-                                record_source = record_tempSource;
+                                record_source = MediaRecorder.AudioSource.VOICE_RECOGNITION;
                                 btn_record_source.setText("SOURCE\nVOICE RECOGNITION");
+                                break;
+                            case "CAMCORDER":  // Microphone audio source tuned for voice recognition.
+                                record_source = MediaRecorder.AudioSource.CAMCORDER;
+                                btn_record_source.setText("SOURCE\nCAMCORDER");
+                                break;
+                            case "UNPROCESSED":  // Microphone audio source tuned for voice recognition.
+                                record_source = MediaRecorder.AudioSource.UNPROCESSED;
+                                btn_record_source.setText("SOURCE\nUNPROCESSED");
                                 break;
                         }
                         record_source_index = which;
@@ -466,6 +510,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 btn_record_source.setText("SOURCE\nVOICE RECOGNITION");
                                 Toast.makeText(MainActivity.this, "VOICE RECOGNITION으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
+                            case MediaRecorder.AudioSource.CAMCORDER:
+                                btn_record_source.setText("SOURCE\nCAMCORDER");
+                                Toast.makeText(MainActivity.this, "CAMCORDER로 설정 완료", Toast.LENGTH_SHORT).show();
+                                break;
+                            case MediaRecorder.AudioSource.UNPROCESSED:
+                                btn_record_source.setText("SOURCE\nUNPROCESSED");
+                                Toast.makeText(MainActivity.this, "UNPROCESSED로 설정 완료", Toast.LENGTH_SHORT).show();
+                                break;
                         }
                     }
                 })
@@ -493,12 +545,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (channel[which].equals("MONO")) {
-                            record_tempChannel = AudioFormat.CHANNEL_IN_MONO;
-                            record_channel = record_tempChannel;
+                            record_channel = AudioFormat.CHANNEL_IN_MONO;
                             btn_record_channel.setText("CHANNEL\nMONO");
                         } else {
-                            record_tempChannel = AudioFormat.CHANNEL_IN_STEREO;
-                            record_channel = record_tempChannel;
+                            record_channel = AudioFormat.CHANNEL_IN_STEREO;
                             btn_record_channel.setText("CHANNEL\nSTEREO");
                         }
                         record_channel_index = which;
@@ -541,33 +591,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         switch (sampleRate[which]) {
                             case "8,000":
-                                record_tempRate = 8000;
-                                record_sampleRate = record_tempRate;
-                                playHandler.removeMessages(0);
+                                record_sampleRate = SAMPLE_RATE_8000;
                                 btn_record_sampleRate.setText("SAMPLE RATE\n8,000");
                                 break;
                             case "11,025":
-                                record_tempRate = 11025;
-                                record_sampleRate = record_tempRate;
-                                playHandler.removeMessages(0);
+                                record_sampleRate = SAMPLE_RATE_11025;
                                 btn_record_sampleRate.setText("SAMPLE RATE\n11,025");
                                 break;
                             case "16,000":
-                                record_tempRate = 16000;
-                                record_sampleRate = record_tempRate;
-                                playHandler.removeMessages(0);
+                                record_sampleRate = SAMPLE_RATE_16000;
                                 btn_record_sampleRate.setText("SAMPLE RATE\n16,000");
                                 break;
                             case "22,050":
-                                record_tempRate = 22050;
-                                record_sampleRate = record_tempRate;
-                                playHandler.removeMessages(0);
+                                record_sampleRate = SAMPLE_RATE_22050;
                                 btn_record_sampleRate.setText("SAMPLE RATE\n22,050");
                                 break;
                             case "44,100":
-                                record_tempRate = 44100;
-                                record_sampleRate = record_tempRate;
-                                playHandler.removeMessages(0);
+                                record_sampleRate = SAMPLE_RATE_44100;
                                 btn_record_sampleRate.setText("SAMPLE RATE\n44,100");
                                 break;
                         }
@@ -577,25 +617,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        playHandler.removeMessages(0);
                         switch (record_sampleRate) {
-                            case 8000:
+                            case SAMPLE_RATE_8000:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n8,000");
                                 Toast.makeText(MainActivity.this, "8,000으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 11025:
+                            case SAMPLE_RATE_11025:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n11,025");
                                 Toast.makeText(MainActivity.this, "11,025으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 16000:
+                            case SAMPLE_RATE_16000:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n16,000");
                                 Toast.makeText(MainActivity.this, "16,000으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 22050:
+                            case SAMPLE_RATE_22050:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n22,050");
                                 Toast.makeText(MainActivity.this, "22,050으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 44100:
+                            case SAMPLE_RATE_44100:
                                 btn_record_sampleRate.setText("SAMPLE RATE\n44,100");
                                 Toast.makeText(MainActivity.this, "44,100으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
@@ -629,18 +668,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         switch (bufferSize[which]) {
                             case "512":
-                                record_tempBuffer = 512;
-                                record_bufferSize = record_tempBuffer;
+                                record_bufferSize = BUFFER_SIZE_512;
                                 btn_record_bufferSize.setText("BUFFER SIZE\n512");
                                 break;
                             case "1,024":
-                                record_tempBuffer = 1024;
-                                record_bufferSize = record_tempBuffer;
+                                record_bufferSize = BUFFER_SIZE_1024;
                                 btn_record_bufferSize.setText("BUFFER SIZE\n1,024");
                                 break;
                             case "2,048":
-                                record_tempBuffer = 2048;
-                                record_bufferSize = record_tempBuffer;
+                                record_bufferSize = BUFFER_SIZE_2048;
                                 btn_record_bufferSize.setText("BUFFER SIZE\n2,048");
                                 break;
                         }
@@ -651,15 +687,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (record_bufferSize) {
-                            case 512:
+                            case BUFFER_SIZE_512:
                                 btn_record_bufferSize.setText("BUFFER SIZE\n512");
                                 Toast.makeText(MainActivity.this, "512로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 1024:
+                            case BUFFER_SIZE_1024:
                                 btn_record_bufferSize.setText("BUFFER SIZE\n1,024");
                                 Toast.makeText(MainActivity.this, "1,024로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 2048:
+                            case BUFFER_SIZE_2048:
                                 btn_record_bufferSize.setText("BUFFER SIZE\n2,048");
                                 Toast.makeText(MainActivity.this, "2,048로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
@@ -682,28 +718,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void play_type() {
 //        myLog.d("method activate");
 
-        final String[] type = new String[]{"MUSIC", "MOVIE", "SPEECH"};
+        final String[] type = new String[]{"RING", "MEDIA", "ALARM", "NOTIFICATION", "SYSTEM"};
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
         builder.setIcon(getDrawable(R.drawable.ic_baseline_type))
                 .setTitle("Play Type")
                 .setSingleChoiceItems(type, play_type_index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
                         switch (type[which]) {
-                            case "MUSIC":
-                                play_tempType = AudioAttributes.CONTENT_TYPE_MUSIC;
-                                play_type = play_tempType;
-                                btn_play_type.setText("TYPE\nMUSIC");
+                            case "RING":
+                                play_type = AudioAttributes.USAGE_NOTIFICATION_RINGTONE;
+                                btn_play_type.setText("TYPE\nRING");
+                                volume_type = AudioManager.STREAM_RING;
+                                setVolumeControlStream(volume_type);
+                                btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
+                                // audioManager.getStreamVolume(volume_type);
                                 break;
-                            case "MOVIE":
-                                play_tempType = AudioAttributes.CONTENT_TYPE_MOVIE;
-                                play_type = play_tempType;
-                                btn_play_type.setText("TYPE\nMOVIE");
+                            case "MEDIA":
+                                play_type = AudioAttributes.USAGE_MEDIA;
+                                btn_play_type.setText("TYPE\nMEDIA");
+                                volume_type = AudioManager.STREAM_MUSIC;
+                                setVolumeControlStream(volume_type);
+                                btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
                                 break;
-                            case "SPEECH":
-                                play_tempType = AudioAttributes.CONTENT_TYPE_SPEECH;
-                                play_type = play_tempType;
-                                btn_play_type.setText("TYPE\nSPEECH");
+                            case "ALARM":
+                                play_type = AudioAttributes.USAGE_ALARM;
+                                btn_play_type.setText("TYPE\nALARM");
+                                volume_type = AudioManager.STREAM_ALARM;
+                                setVolumeControlStream(volume_type);
+                                btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
+                                break;
+                            case "NOTIFICATION":
+                                play_type = AudioAttributes.USAGE_NOTIFICATION;
+                                btn_play_type.setText("TYPE\nNOTIFICATION");
+                                volume_type = AudioManager.STREAM_NOTIFICATION;
+                                setVolumeControlStream(volume_type);
+                                btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
+                                break;
+                            case "SYSTEM":
+                                play_type = AudioAttributes.USAGE_ASSISTANCE_SONIFICATION;
+                                btn_play_type.setText("TYPE\nSYSTEM");
+                                volume_type = AudioManager.STREAM_SYSTEM;
+                                setVolumeControlStream(volume_type);
+                                btn_play_volume.setText("VOLUME\n" + String.valueOf(audioManager.getStreamVolume(volume_type)));
                                 break;
                         }
                         play_type_index = which;
@@ -713,17 +771,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (play_type) {
-                            case AudioAttributes.CONTENT_TYPE_MUSIC:
-                                btn_play_type.setText("TYPE\nMUSIC");
-                                Toast.makeText(MainActivity.this, "MUSIC으로 설정 완료", Toast.LENGTH_SHORT).show();
+                            case AudioAttributes.USAGE_NOTIFICATION_RINGTONE:
+                                btn_play_type.setText("TYPE\nRING");
+                                Toast.makeText(MainActivity.this, "RING으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case AudioAttributes.CONTENT_TYPE_MOVIE:
-                                btn_play_type.setText("TYPE\nMOVIE");
-                                Toast.makeText(MainActivity.this, "MOVIE로 설정 완료", Toast.LENGTH_SHORT).show();
+                            case AudioAttributes.USAGE_MEDIA:
+                                btn_play_type.setText("TYPE\nMEDIA");
+                                Toast.makeText(MainActivity.this, "MEDIA로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case AudioAttributes.CONTENT_TYPE_SPEECH:
-                                btn_play_type.setText("TYPE\nSPEECH");
-                                Toast.makeText(MainActivity.this, "SPEECH로 설정 완료", Toast.LENGTH_SHORT).show();
+                            case AudioAttributes.USAGE_ALARM:
+                                btn_play_type.setText("TYPE\nALARM");
+                                Toast.makeText(MainActivity.this, "ALARM으로 설정 완료", Toast.LENGTH_SHORT).show();
+                                break;
+                            case AudioAttributes.USAGE_NOTIFICATION:
+                                btn_play_type.setText("TYPE\nNOTIFICATION");
+                                Toast.makeText(MainActivity.this, "NOTIFICATION으로 설정 완료", Toast.LENGTH_SHORT).show();
+                                break;
+                            case AudioAttributes.USAGE_ASSISTANCE_SONIFICATION:
+                                btn_play_type.setText("TYPE\nSYSTEM");
+                                Toast.makeText(MainActivity.this, "SYSTEM으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
                         }
                     }
@@ -752,12 +818,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (channel[which].equals("MONO")) {
-                            play_tempChannel = AudioFormat.CHANNEL_OUT_MONO;
-                            play_channel = play_tempChannel;
+                            play_channel = AudioFormat.CHANNEL_OUT_MONO;
                             btn_play_channel.setText("CHANNEL\nMONO");
                         } else {
-                            play_tempChannel = AudioFormat.CHANNEL_OUT_STEREO;
-                            play_channel = play_tempChannel;
+                            play_channel = AudioFormat.CHANNEL_OUT_STEREO;
                             btn_play_channel.setText("CHANNEL\nSTEREO");
                         }
                         play_channel_index = which;
@@ -800,28 +864,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         switch (freqArray[which]) {
                             case "8,000":
-                                play_tempRate = 8000;
-                                play_sampleRate = play_tempRate;
+                                play_sampleRate = SAMPLE_RATE_8000;
                                 btn_play_sampleRate.setText("SAMPLE RATE\n8,000");
                                 break;
                             case "11,025":
-                                play_tempRate = 11025;
-                                play_sampleRate = play_tempRate;
+                                play_sampleRate = SAMPLE_RATE_11025;
                                 btn_play_sampleRate.setText("SAMPLE RATE\n11,025");
                                 break;
                             case "16,000":
-                                play_tempRate = 16000;
-                                play_sampleRate = play_tempRate;
+                                play_sampleRate = SAMPLE_RATE_16000;
                                 btn_play_sampleRate.setText("SAMPLE RATE\n16,000");
                                 break;
                             case "22,050":
-                                play_tempRate = 22050;
-                                play_sampleRate = play_tempRate;
+                                play_sampleRate = SAMPLE_RATE_22050;
                                 btn_play_sampleRate.setText("SAMPLE RATE\n22,050");
                                 break;
                             case "44,100":
-                                play_tempRate = 44100;
-                                play_sampleRate = play_tempRate;
+                                play_sampleRate = SAMPLE_RATE_44100;
                                 btn_play_sampleRate.setText("SAMPLE RATE\n44,100");
                                 break;
                         }
@@ -831,26 +890,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton(Html.fromHtml("<font color='#3399FF'>Choice</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        play_sampleRate = play_tempRate;
-                        playHandler.removeMessages(0);
                         switch (play_sampleRate) {
-                            case 8000:
+                            case SAMPLE_RATE_8000:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n8,000");
                                 Toast.makeText(MainActivity.this, "8,000으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 11025:
+                            case SAMPLE_RATE_11025:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n11,025");
                                 Toast.makeText(MainActivity.this, "11,025으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 16000:
+                            case SAMPLE_RATE_16000:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n16,000");
                                 Toast.makeText(MainActivity.this, "16,000으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 22050:
+                            case SAMPLE_RATE_22050:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n22,050");
                                 Toast.makeText(MainActivity.this, "22,050으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
-                            case 44100:
+                            case SAMPLE_RATE_44100:
                                 btn_play_sampleRate.setText("SAMPLE RATE\n44,100");
                                 Toast.makeText(MainActivity.this, "44,100으로 설정 완료", Toast.LENGTH_SHORT).show();
                                 break;
@@ -890,12 +947,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void seekBar_action() {
 
         final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        int nMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int nCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int nMin = 1;
+        int nMax = audioManager.getStreamMaxVolume(volume_type);
+        int nCurrentVolume = audioManager.getStreamVolume(volume_type);
 
-        seekBar_volume.setMin(1);
+        seekBar_volume.setMin(nMin);
         seekBar_volume.setMax(nMax);
         seekBar_volume.setProgress(nCurrentVolume);
+
         if (nCurrentVolume >= 13) {
             text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
             img_seekbar.setImageResource(R.drawable.png_volume_loud);
@@ -907,11 +966,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             img_seekbar.setImageResource(R.drawable.png_volume_small);
         }
         text_seekbar.setText(String.valueOf(nCurrentVolume));
+
         seekBar_volume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO Auto-generated method stub
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                audioManager.setStreamVolume(volume_type, progress, 0);
                 if (progress >= 13) {
                     text_seekbar.setTextColor(getResources().getColor(R.color.record_red));
                     img_seekbar.setImageResource(R.drawable.png_volume_loud);
@@ -923,8 +983,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     img_seekbar.setImageResource(R.drawable.png_volume_small);
                 }
                 text_seekbar.setText(String.valueOf(progress));
-                btn_play_volume.setText("VOLUME\n" + String.valueOf(progress));
-//                myLog.d(String.valueOf(progress));
             }
 
             @Override
@@ -965,17 +1023,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler playHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            text_timer.setText(getTime());
-            view_waveform.update(AudioTrack.dataMax);
-            playHandler.sendEmptyMessage(0);
-        }
-    };
-
-    Handler autoStopHandler = new Handler() {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
             if (autoStop) {
-                myLog.d("autoStop 발생!");
+//                myLog.d("autoStop 발생!");
 
                 autoStop = false;
                 isPlaying = false;
@@ -989,10 +1038,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btn_play.setText("Play");
 
                 playHandler.removeMessages(0);
-                autoStopHandler.removeMessages(0);
+            } else {
+                text_timer.setText(getTime());
+                view_waveform.update(AudioTrack.dataMax);
+
+                playHandler.sendEmptyMessage(0);
             }
-            autoStopHandler.sendEmptyMessage(0);
         }
     };
+
 
 }

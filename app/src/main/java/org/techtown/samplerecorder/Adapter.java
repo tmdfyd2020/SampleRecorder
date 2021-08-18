@@ -146,15 +146,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
                             byte[] data = new byte[bufferSize]; // small buffer size to not overflow AudioTrack's internal buffer
 
-//                            FileInputStream fileInputStream = null;
                             RandomAccessFile randomFile = null;
 
-//                            try {
-//                                fileInputStream = new FileInputStream(file);
-//                            }
-//                            catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
                             try {
                                 randomFile = new RandomAccessFile(file, "rw");
                             } catch (FileNotFoundException e) {
@@ -171,12 +164,9 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                             int i = 0;
                             while (i != -1) { // run until file ends
                                 try {
-//                                    i = fileInputStream.read(data);
                                     i = randomFile.read(data);
-                                    long pointer = randomFile.getFilePointer();
-                                    long lengg = randomFile.length();
                                     len = audioTrack.write(data, 0, i);
-                                    myLog.d("offset : " + String.valueOf(lengg));
+
                                     if(state_playing == false) {
                                         break;
                                     }
@@ -186,12 +176,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                                 }
                             }
 
-//                            try {
-//                                fileInputStream.close();
-//                            }
-//                            catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
                             try {
                                 randomFile.close();
                             } catch (IOException e) {

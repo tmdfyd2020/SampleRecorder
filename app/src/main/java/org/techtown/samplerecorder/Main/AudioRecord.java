@@ -2,6 +2,7 @@ package org.techtown.samplerecorder.Main;
 
 import android.content.Context;
 import android.media.AudioFormat;
+import android.media.MediaRecorder;
 import android.widget.Toast;
 
 import java.io.File;
@@ -33,6 +34,8 @@ public class AudioRecord {
 
     public void start(int source, int channel, int sampleRate, Queue queue) {
 //        myLog.d("method activate");
+
+        myLog.d("record sample rate : " + String.valueOf(sampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
@@ -77,7 +80,9 @@ public class AudioRecord {
 
                     if (MainActivity.fileDrop) {
                         try {
-                            outputStream.write(audioData, 0, len_audioData);
+                            if (outputStream != null) {
+                                outputStream.write(audioData, 0, len_audioData);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

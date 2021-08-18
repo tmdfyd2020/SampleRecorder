@@ -23,13 +23,15 @@ public class AudioTrack {
     }
 
     public void play(int type, int channel, int sampleRate, Queue queue) {
-        myLog.d("method activate");
+//        myLog.d("method activate");
+
+        myLog.d("play sample rate : " + String.valueOf(sampleRate));
 
         if (audioTrack == null) {
             audioTrack = new android.media.AudioTrack.Builder()
                     .setAudioAttributes(new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .setContentType(type)
+                            .setUsage(type)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                             .build())
                     .setAudioFormat(new AudioFormat.Builder()
                             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
@@ -69,6 +71,12 @@ public class AudioTrack {
             }
 
         });
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         playThread.start();
     }
