@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static boolean isRecording = false;
     public static boolean isPlaying = false;
-    public static boolean fileDrop;
     public static boolean autoStop = false;
 
     private AudioRecord myAudioRecord;
@@ -81,8 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int record_source, record_source_index, record_channel, record_channel_index, record_sampleRate, record_sampleRate_index,
             record_bufferSize, record_bufferSize_index, play_type, volume_type, play_type_index,
             play_channel, play_channel_index, play_sampleRate, play_sampleRate_index;
-
-    Message message;
+    private boolean fileDrop, first_track;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -333,17 +331,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myLog.d("method activate");
 
         if (isRecording) {  // if "STOP" button clicked,
-            myAudioRecord.stop();
-            myAudioRecord.release(context);
             isRecording = false;  // check : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
+            myAudioRecord.stop();
+            myAudioRecord.release(context, fileDrop);
             stopRecording();
         } else {  // if "RECORD" button clicked,
             myAudioRecord = new AudioRecord();
             queue = new Queue();
-            myAudioRecord.init(record_bufferSize);
-            myAudioRecord.start(record_source, record_channel, record_sampleRate, queue);
-            myLog.d("MainActivity record sample rate : " + String.valueOf(record_sampleRate));
             isRecording = true;
+            myAudioRecord.init(record_bufferSize);
+            myAudioRecord.start(record_source, record_channel, record_sampleRate, queue, fileDrop);
             startRecording();
         }
     }
@@ -360,6 +357,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_record.setEnabled(true);
         btn_record.setBackground(getDrawable(R.drawable.btn_record_active));
         btn_play.setEnabled(true);
+
+        first_track = true;
     }
 
     public void startRecording() {
@@ -372,9 +371,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        Message recordMsg = recordHandler.obtainMessage();
 ////        Message recordMsg = new Message();
 //        recordMsg.what = MESSAGE_RECORD;
-        message = recordHandler.obtainMessage();
-        message.what = MESSAGE_RECORD;
-        recordHandler.sendMessage(message);
+        Message recordMsg = recordHandler.obtainMessage();
+        recordMsg.what = MESSAGE_RECORD;
+        recordHandler.sendMessage(recordMsg);
 
         btn_record.setText("Stop");
         btn_record_bufferSize.setEnabled(true);
@@ -400,6 +399,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             myAudioTrack.release();
             stopPlaying();
         } else {  // if "PLAY" button clicked,
+            myAudioTrack = new AudioTrack();
             isPlaying = true;
             myAudioTrack.init(record_bufferSize);
             myAudioTrack.play(play_type, play_channel, play_sampleRate, queue);
@@ -421,6 +421,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void startPlaying() {
 //        myLog.d("method activate");
+
+        if (first_track) {
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            first_track = false;
+        }
 
         view_waveform.recreate();
         view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
@@ -1016,6 +1025,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void handleMessage(@NonNull Message msg) {
             text_timer.setText(getTime());
             view_waveform.update(AudioRecord.dataMax);
+
             recordHandler.sendEmptyMessage(0);
         }
     };
@@ -1023,7 +1033,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler playHandler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            if (autoStop) {
+            if (!autoStop) {
+                text_timer.setText(getTime());
+                view_waveform.update(AudioTrack.dataMax);
+
+                playHandler.sendEmptyMessage(0);
+            } else {
 //                myLog.d("autoStop 발생!");
 
                 autoStop = false;
@@ -1038,14 +1053,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btn_play.setText("Play");
 
                 playHandler.removeMessages(0);
-            } else {
-                text_timer.setText(getTime());
-                view_waveform.update(AudioTrack.dataMax);
-
-                playHandler.sendEmptyMessage(0);
             }
         }
     };
-
 
 }

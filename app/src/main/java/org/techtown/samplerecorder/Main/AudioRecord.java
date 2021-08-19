@@ -32,10 +32,8 @@ public class AudioRecord {
         record_bufferSize = bufferSize;
     }
 
-    public void start(int source, int channel, int sampleRate, Queue queue) {
+    public void start(int source, int channel, int sampleRate, Queue queue, boolean fileDrop) {
 //        myLog.d("method activate");
-
-        myLog.d("record sample rate : " + String.valueOf(sampleRate));
 
         if(audioRecord == null) {
             audioRecord = new android.media.AudioRecord(
@@ -47,7 +45,7 @@ public class AudioRecord {
             );
         }
 
-        if (MainActivity.fileDrop) {
+        if (fileDrop) {
             file = new File("/mnt/sdcard/audioDrop/", fileName(System.currentTimeMillis()));
             outputStream = null;
 
@@ -78,7 +76,7 @@ public class AudioRecord {
                         dataMax = 10 * Math.abs(buffer.getShort());
                     }
 
-                    if (MainActivity.fileDrop) {
+                    if (fileDrop) {
                         try {
                             if (outputStream != null) {
                                 outputStream.write(audioData, 0, len_audioData);
@@ -113,10 +111,10 @@ public class AudioRecord {
         }
     }
 
-    public void release(Context context) {
+    public void release(Context context, boolean fileDrop) {
 //        myLog.d("method activate");
 
-        if (MainActivity.fileDrop) {
+        if (fileDrop) {
             try {
                 outputStream.flush();
                 outputStream.close();

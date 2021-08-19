@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
-import android.media.MediaPlayer;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,16 +16,15 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.techtown.samplerecorder.Main.myLog;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
@@ -34,14 +32,18 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     Context listContext;
     int sampleRate, bufferSize;
     AudioTrack audioTrack;
-    boolean state_playing = false;
-    SeekBar seekBar;
-    int len = 0;
-    int seek = 0;
+    boolean seekbar_touch = false;
+    int previous_position = -1, move_pointer;
+    String btn_type = "play_button";
+    Thread playThread;
+    boolean press_pause = false, resume = false, complete_play;
+    long pause_point;
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         TextView textView;
+        SeekBar seekBar;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -101,7 +103,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         this.bufferSize = bufferSize;
     }
 
-    // onCreateViewHolder() : 아이템 뷰를 위한 뷰홀더 객체 생성하여 리턴.
     @Override
     public Adapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
@@ -113,7 +114,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         return vh;
     }
 
-    // onBindViewHolder() - position에 해당하는 데이터를 뷰홀더의 아이템뷰에 표시.
+    /*
+     ○ randomFile.getFilePointer() :: 진행 중인 파일 포인터의 위치
+     ○ randomFile.length() :: 실행할 파일의 총 길이 (getFilePointer()의 최댓값)
+     ○ randomFile.seek(long position) :: position으로 파일의 포인터를 이동
+    */
+
     @Override
     public void onBindViewHolder(Adapter.ViewHolder holder, int position) {
         File file = fileList.get(position);
@@ -121,94 +127,165 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (state_playing == false) {  // if click play image button,
+                switch(btn_type) {
+                    case "play_button":
+                        btn_type = "pause_button";
+                        complete_play = true;
 
-                    state_playing = true;
-                    holder.imageView.setImageResource(R.drawable.png_pause);
+                        if (previous_position != -1 && previous_position != position) {
+                            notifyItemChanged(previous_position, "click");  // hide previous position seekbar
+                        }
+                        previous_position = position;
 
-                    Thread playThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (audioTrack == null) {
-                                audioTrack = new android.media.AudioTrack.Builder()
-                                        .setAudioAttributes(new AudioAttributes.Builder()
-                                                .setUsage(AudioAttributes.USAGE_MEDIA)
-                                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                                .build())
-                                        .setAudioFormat(new AudioFormat.Builder()
-                                                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                                                .setSampleRate(sampleRate)
-                                                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                                                .build())
-                                        .setBufferSizeInBytes(bufferSize * 2)
-                                        .build();
+                        holder.imageView.setImageResource(R.drawable.png_pause);
+                        holder.seekBar.setVisibility(View.VISIBLE);
+                        holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override  // if drag seekbar
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                                move_pointer = progress;
                             }
 
-                            byte[] data = new byte[bufferSize]; // small buffer size to not overflow AudioTrack's internal buffer
-
-                            RandomAccessFile randomFile = null;
-
-                            try {
-                                randomFile = new RandomAccessFile(file, "rw");
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
+                            @Override  // if start touch seekbar thumb
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+                                seekbar_touch = true;
                             }
 
-                            audioTrack.play();
+                            @Override  // if stop touch seekbar thumb
+                            public void onStopTrackingTouch(SeekBar seekBar) {
 
-                            /*
-                             ○ randomFile.getFilePointer() :: 진행 중인 파일 포인터의 위치
-                             ○ randomFile.length() :: 실행할 파일의 총 길이 (getFilePointer()의 최댓값)
-                             ○ randomFile.seek(long position) :: position으로 파일의 포인터를 이동
-                             */
-                            int i = 0;
-                            while (i != -1) { // run until file ends
-                                try {
-                                    i = randomFile.read(data);
-                                    len = audioTrack.write(data, 0, i);
+                            }
+                        });
 
-                                    if(state_playing == false) {
-                                        break;
-                                    }
+                        playThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (audioTrack == null) {
+                                    audioTrack = new android.media.AudioTrack.Builder()
+                                            .setAudioAttributes(new AudioAttributes.Builder()
+                                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                                    .build())
+                                            .setAudioFormat(new AudioFormat.Builder()
+                                                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                                                    .setSampleRate(sampleRate)
+                                                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                                                    .build())
+                                            .setBufferSizeInBytes(bufferSize * 2)
+                                            .build();
                                 }
-                                catch (IOException e) {
+
+                                byte[] data = new byte[bufferSize]; // small buffer size to not overflow AudioTrack's internal buffer
+
+                                RandomAccessFile randomFile = null;
+                                try {
+                                    randomFile = new RandomAccessFile(file, "rw");
+                                } catch (FileNotFoundException e) {
                                     e.printStackTrace();
                                 }
-                            }
 
-                            try {
-                                randomFile.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                                holder.seekBar.setMin(0);
+                                try {
+                                    holder.seekBar.setMax((int) randomFile.length());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
 
-                            if(state_playing == true) {
+                                audioTrack.play();
+
+                                if (!resume) {
+                                    int i = 0;
+                                    while (i != -1) { // run until file ends
+                                        try {
+                                            i = randomFile.read(data);
+                                            audioTrack.write(data, 0, i);
+                                            holder.seekBar.setProgress((int) randomFile.getFilePointer());
+
+                                            if (press_pause) {
+                                                pause_point = randomFile.getFilePointer();
+                                                complete_play = false;
+                                                press_pause = false;
+                                                break;
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                } else {  // if click pause button and then resume play,
+                                    resume = false;
+                                    try {
+                                        randomFile.seek((int) pause_point);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    int j = 0;
+                                    while (j != -1) { // run until file ends
+                                        try {
+                                            j = randomFile.read(data);
+                                            audioTrack.write(data, 0, j);
+                                            holder.seekBar.setProgress((int) randomFile.getFilePointer());
+
+                                            if (press_pause) {
+                                                pause_point = randomFile.getFilePointer();
+                                                complete_play = false;
+                                                press_pause = false;
+                                                break;
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
+                                // 여기가 문제인 것 같다.
+//                                if (!press_pause) {
+//                                    audioTrack.stop();
+//                                    audioTrack.release();
+//                                    audioTrack = null;
+//                                }
+
                                 audioTrack.stop();
                                 audioTrack.release();
                                 audioTrack = null;
+
+                                try {
+                                    randomFile.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                                if (complete_play) {  // if complete to play audio file until end point,
+                                    holder.imageView.setImageResource(R.drawable.png_play);
+                                    btn_type = "play_button";
+                                }
                             }
-                            state_playing = false;
-                            holder.imageView.setImageResource(R.drawable.png_play);
-                        }
-                    });
-                    playThread.start();
+                        });
+
+                        playThread.start();
+                        break;
+
+                    case "pause_button":
+                        btn_type = "play_button";
+                        press_pause = true;
+                        resume = true;
+
+//                        audioTrack.stop();
+//                        audioTrack.release();
+//                        audioTrack = null;
+
+                        holder.imageView.setImageResource(R.drawable.png_play);
+                        break;
                 }
-
-                else {  // if click pause image button,
-                    state_playing = false;
-                    audioTrack.stop();
-                    audioTrack.release();
-                    audioTrack = null;
-                    holder.imageView.setImageResource(R.drawable.png_play);
-
-                }
-
-
             }
         });
     }
 
-    // getItemCount() - 전체 데이터 갯수 리턴.
+    @Override
+    public void onBindViewHolder(@NonNull Adapter.ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+        // by performing upper condition, hide previous position holder seekbar
+        holder.seekBar.setVisibility(View.GONE);
+    }
+
     @Override
     public int getItemCount() {
         return fileList.size();

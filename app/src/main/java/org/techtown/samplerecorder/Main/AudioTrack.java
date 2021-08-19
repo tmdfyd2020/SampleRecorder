@@ -50,14 +50,14 @@ public class AudioTrack {
 
                 while (MainActivity.isPlaying) {
 
-                    if (queue.isEmpty()) {
-                        queue.copy();
-                        MainActivity.autoStop = true;
-                        break;
-                    }
-
                     audioData = queue.dequeue();
                     audioTrack.write(audioData, 0, track_bufferSize);
+
+                    if (queue.isEmpty()) {
+                        MainActivity.autoStop = true;
+                        queue.copy();
+                        break;
+                    }
 
                     // using draw waveform in MainActivity
                     dataMax = 0;
@@ -67,16 +67,9 @@ public class AudioTrack {
                         dataMax = 10 * Math.abs(buffer.getShort());
                     }
                 }
-
             }
 
         });
-
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         playThread.start();
     }
