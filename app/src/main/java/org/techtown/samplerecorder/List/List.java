@@ -1,6 +1,5 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,7 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.techtown.samplerecorder.Main.myLog;
+import org.techtown.samplerecorder.R;
 
 import java.io.File;
 import java.util.ArrayList;

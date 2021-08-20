@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.List;
 
 public class Item {
     private String name;

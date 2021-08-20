@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context=".List">
+    tools:context=".List.List">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_list"
@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_marginTop="350dp"
+        android:layout_marginTop="300dp"
         android:layout_gravity="center_horizontal" >
 
         <androidx.cardview.widget.CardView

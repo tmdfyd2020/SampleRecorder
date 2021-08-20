@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder;
+package org.techtown.samplerecorder.List;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,6 +19,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.techtown.samplerecorder.Main.myLog;
+import org.techtown.samplerecorder.R;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,7 +41,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     Thread playThread;
     boolean press_pause = false, resume = false, complete_play;
     long pause_point;
-
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
@@ -114,16 +116,26 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         return vh;
     }
 
-    /*
-     ○ randomFile.getFilePointer() :: 진행 중인 파일 포인터의 위치
-     ○ randomFile.length() :: 실행할 파일의 총 길이 (getFilePointer()의 최댓값)
-     ○ randomFile.seek(long position) :: position으로 파일의 포인터를 이동
-    */
-
     @Override
     public void onBindViewHolder(Adapter.ViewHolder holder, int position) {
         File file = fileList.get(position);
         holder.textView.setText(file.getName());
+        holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override  // if drag seekbar
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                move_pointer = progress;
+            }
+
+            @Override  // if start touch seekbar thumb
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                seekbar_touch = true;
+            }
+
+            @Override  // if stop touch seekbar thumb
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Thread 실행 시키면 될 것 같다.
+            }
+        });
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,27 +146,13 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
                         if (previous_position != -1 && previous_position != position) {
                             notifyItemChanged(previous_position, "click");  // hide previous position seekbar
+                            pause_point = 0;
+                            resume = false;
                         }
                         previous_position = position;
 
                         holder.imageView.setImageResource(R.drawable.png_pause);
                         holder.seekBar.setVisibility(View.VISIBLE);
-                        holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                            @Override  // if drag seekbar
-                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                                move_pointer = progress;
-                            }
-
-                            @Override  // if start touch seekbar thumb
-                            public void onStartTrackingTouch(SeekBar seekBar) {
-                                seekbar_touch = true;
-                            }
-
-                            @Override  // if stop touch seekbar thumb
-                            public void onStopTrackingTouch(SeekBar seekBar) {
-
-                            }
-                        });
 
                         playThread = new Thread(new Runnable() {
                             @Override
@@ -211,6 +209,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                                         }
                                     }
                                 } else {  // if click pause button and then resume play,
+                                    myLog.d("resume 지점 통과");
                                     resume = false;
                                     try {
                                         randomFile.seek((int) pause_point);
@@ -236,13 +235,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                                     }
                                 }
 
-                                // 여기가 문제인 것 같다.
-//                                if (!press_pause) {
-//                                    audioTrack.stop();
-//                                    audioTrack.release();
-//                                    audioTrack = null;
-//                                }
-
                                 audioTrack.stop();
                                 audioTrack.release();
                                 audioTrack = null;
@@ -267,10 +259,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                         btn_type = "play_button";
                         press_pause = true;
                         resume = true;
-
-//                        audioTrack.stop();
-//                        audioTrack.release();
-//                        audioTrack = null;
 
                         holder.imageView.setImageResource(R.drawable.png_play);
                         break;

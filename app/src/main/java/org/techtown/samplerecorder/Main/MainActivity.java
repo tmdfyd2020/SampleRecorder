@@ -40,7 +40,7 @@ import androidx.core.content.ContextCompat;
 
 import com.visualizer.amplitude.AudioRecordView;
 
-import org.techtown.samplerecorder.List;
+import org.techtown.samplerecorder.List.List;
 import org.techtown.samplerecorder.R;
 
 import lib.kingja.switchbutton.SwitchMultiButton;
@@ -422,14 +422,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void startPlaying() {
 //        myLog.d("method activate");
 
-        if (first_track) {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            first_track = false;
-        }
+        // use this emerging bug like delay 300 at first play
+//        if (first_track) {
+//            try {
+//                Thread.sleep(300);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            first_track = false;
+//        }
 
         view_waveform.recreate();
         view_waveform.setChunkColor(getResources().getColor(R.color.play_blue));
