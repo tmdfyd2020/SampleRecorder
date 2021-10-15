@@ -38,7 +38,8 @@ public class List extends AppCompatActivity {
         int bufferSize = myIntent.getIntExtra("bufferSize", 1024);
 
         // 리사이클러뷰에 표시할 데이터 리스트 생성.
-        File filePath = new File("/mnt/sdcard/audioDrop/");
+//        File filePath = new File("/mnt/sdcard/audioDrop/");
+        File filePath = new File("/data/user/0/org.techtown.samplerecorder/file/");
         if (filePath.exists() == false) {
             return;
         }

@@ -3,6 +3,7 @@ package org.techtown.samplerecorder.Main;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -46,11 +47,13 @@ public class AudioRecord {
         }
 
         if (fileDrop) {
-            file = new File("/mnt/sdcard/audioDrop/", fileName(System.currentTimeMillis()));
+//            file = new File("/mnt/sdcard/audioDrop/", fileName(System.currentTimeMillis()));
+            file = new File("/data/user/0/org.techtown.samplerecorder/file/", fileName(System.currentTimeMillis()));
+            myLog.d(file.getAbsolutePath());
             outputStream = null;
 
             try {
-                outputStream = new FileOutputStream(file);
+                outputStream = new FileOutputStream(file);  // TODO 여기서 생성이 안 되고, outputStream이 계속 null 발생
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -79,6 +82,7 @@ public class AudioRecord {
                     if (fileDrop) {
                         try {
                             if (outputStream != null) {
+                                myLog.d("드롭 파일 생성 중22");
                                 outputStream.write(audioData, 0, len_audioData);
                             }
                         } catch (IOException e) {
@@ -116,7 +120,7 @@ public class AudioRecord {
 
         if (fileDrop) {
             try {
-                outputStream.flush();
+                outputStream.flush();  // TODO : null reference issue
                 outputStream.close();
             } catch (IOException e) {
                 myLog.d("exception while closing output stream " + e.toString());
