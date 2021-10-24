@@ -2,8 +2,6 @@ package org.techtown.samplerecorder.Main;
 
 import android.content.Context;
 import android.media.AudioFormat;
-import android.media.MediaRecorder;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -16,6 +14,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class AudioRecord {
+
+    private final String TAG = this.getClass().getSimpleName();
 
     public static int dataMax;
 

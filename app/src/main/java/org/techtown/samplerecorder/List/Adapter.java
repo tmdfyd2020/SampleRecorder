@@ -31,6 +31,8 @@ import java.util.List;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
+    private final String TAG = this.getClass().getSimpleName();
+
     private ArrayList<File> fileList;
     Context listContext;
     int sampleRate, bufferSize;

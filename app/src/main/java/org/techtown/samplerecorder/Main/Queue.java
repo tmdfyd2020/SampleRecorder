@@ -4,6 +4,8 @@ import java.util.LinkedList;
 
 public class Queue {
 
+    private final String TAG = this.getClass().getSimpleName();
+
     java.util.Queue<byte[]> queue;
     java.util.Queue<byte[]> store;
 

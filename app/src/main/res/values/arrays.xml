@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string-array name="switch_tabs">
         <item>ON</item>
         <item>OFF</item>
     </string-array>
-
 </resources>

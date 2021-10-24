@@ -8,6 +8,8 @@ import java.nio.ByteOrder;
 
 public class AudioTrack {
 
+    private final String TAG = this.getClass().getSimpleName();
+
     public static int dataMax;
 
     private android.media.AudioTrack audioTrack = null;

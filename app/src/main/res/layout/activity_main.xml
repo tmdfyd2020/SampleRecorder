@@ -109,7 +109,7 @@
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical" >
 
@@ -138,13 +138,15 @@
 
                             <Button
                                 android:id="@+id/btn_record_source"
-                                android:text="SOURCE\nMIC"
-                                android:textSize="13sp"
                                 android:layout_width="150dp"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="20dp"
-                                android:background="@drawable/btn_record_settings" />
+                                android:background="@drawable/btn_record_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick"
+                                android:text="Source\nMic"
+                                android:textSize="13sp" />
 
                             <Button
                                 android:id="@+id/btn_record_channel"
@@ -152,9 +154,11 @@
                                 android:textSize="13sp"
                                 android:layout_width="150dp"
                                 android:layout_height="wrap_content"
+                                android:textAllCaps="false"
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="10dp"
-                                android:background="@drawable/btn_record_settings" />
+                                android:background="@drawable/btn_record_settings"
+                                android:onClick="onClick" />
 
                             <Button
                                 android:id="@+id/btn_record_sampleRate"
@@ -163,8 +167,10 @@
                                 android:layout_width="150dp"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
+                                android:textAllCaps="false"
                                 android:layout_marginTop="10dp"
-                                android:background="@drawable/btn_record_settings" />
+                                android:background="@drawable/btn_record_settings"
+                                android:onClick="onClick" />
 
                             <Button
                                 android:id="@+id/btn_record_bufferSize"
@@ -174,7 +180,9 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="10dp"
-                                android:background="@drawable/btn_record_settings" />
+                                android:background="@drawable/btn_record_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -218,7 +226,9 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
                             android:text="RECORD"
-                            android:background="@drawable/btn_record_active" />
+                            android:background="@drawable/btn_record_active"
+                            android:textAllCaps="false"
+                            android:onClick="onClick" />
 
                     </androidx.cardview.widget.CardView>
 
@@ -226,7 +236,7 @@
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical" >
 
@@ -261,7 +271,9 @@
                                 android:text="TYPE\nMEDIA"
                                 android:textSize="13sp"
                                 android:layout_marginTop="20dp"
-                                android:background="@drawable/btn_play_settings" />
+                                android:background="@drawable/btn_play_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick" />
 
                             <Button
                                 android:id="@+id/btn_play_channel"
@@ -271,7 +283,9 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="10dp"
-                                android:background="@drawable/btn_play_settings" />
+                                android:background="@drawable/btn_play_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick" />
 
                             <Button
                                 android:id="@+id/btn_play_sampleRate"
@@ -281,7 +295,9 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="10dp"
-                                android:background="@drawable/btn_play_settings" />
+                                android:background="@drawable/btn_play_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick" />
 
                             <Button
                                 android:id="@+id/btn_play_volume"
@@ -292,7 +308,9 @@
                                 android:layout_gravity="center_horizontal"
                                 android:layout_marginTop="10dp"
                                 android:layout_marginBottom="80dp"
-                                android:background="@drawable/btn_play_settings" />
+                                android:background="@drawable/btn_play_settings"
+                                android:textAllCaps="false"
+                                android:onClick="onClick" />
 
                         </LinearLayout>
 
@@ -312,13 +330,13 @@
                             android:layout_width="150dp"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
-                            android:background="@drawable/btn_play_active" />
+                            android:background="@drawable/btn_play_active"
+                            android:textAllCaps="false"
+                            android:onClick="onClick" />
 
                     </androidx.cardview.widget.CardView>
 
                 </LinearLayout>
-
-
 
             </LinearLayout>
 
@@ -330,4 +348,5 @@
             android:layout_weight="1" />
 
     </LinearLayout>
+
 </LinearLayout>

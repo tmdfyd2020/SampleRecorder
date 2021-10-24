@@ -1,5 +1,11 @@
 plugins {
     id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+kapt {
+    correctErrorTypes true
 }
 
 android {
@@ -8,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "org.techtown.samplerecorder"
-        minSdkVersion 28
+        minSdkVersion 29
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
         versionCode 1
@@ -22,6 +28,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures{
+        dataBinding = true
+        viewBinding = true
     }
 
     compileOptions {
@@ -38,6 +49,9 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
+    // Audio Wave Form Library
     implementation 'com.github.Armen101:AudioRecordView:1.0.5'
-    implementation 'lib.kingja.switchbutton:switchbutton:1.1.8'  // Switch Button!
+
+    // Switch Button Library
+    implementation 'lib.kingja.switchbutton:switchbutton:1.1.8'
 }

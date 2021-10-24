@@ -20,6 +20,8 @@ import java.util.Collections;
 
 public class List extends AppCompatActivity {
 
+    private final String TAG = this.getClass().getSimpleName();
+
     Context context;
 
     @Override
