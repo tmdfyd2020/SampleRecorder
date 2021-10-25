@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class List extends AppCompatActivity {
+public class ListActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
 

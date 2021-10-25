@@ -1,42 +1,6 @@
 package org.techtown.samplerecorder
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
-import android.content.SharedPreferences.Editor
-import android.content.pm.PackageManager
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.MediaRecorder
-import android.os.Bundle
-import android.os.Handler
-import android.os.Message
-import android.os.SystemClock
-import android.provider.Settings
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.view.animation.LinearInterpolator
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.visualizer.amplitude.AudioRecordView
-import lib.kingja.switchbutton.SwitchMultiButton
-import lib.kingja.switchbutton.SwitchMultiButton.OnSwitchListener
-import org.techtown.samplerecorder.List.List
-import org.techtown.samplerecorder.Main.AudioRecord
-import org.techtown.samplerecorder.Main.AudioTrack
-import org.techtown.samplerecorder.Main.Queue
-import org.techtown.samplerecorder.Main.myLog
 
 class MainActivity : AppCompatActivity() {
 //    private val TAG = this.javaClass.simpleName

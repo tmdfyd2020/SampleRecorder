@@ -6,10 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.media.AudioAttributes;
-import android.media.AudioFormat;
 import android.media.AudioManager;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -34,7 +31,7 @@ import androidx.core.content.ContextCompat;
 import com.visualizer.amplitude.AudioRecordView;
 
 import org.techtown.samplerecorder.DialogService;
-import org.techtown.samplerecorder.List.List;
+import org.techtown.samplerecorder.List.ListActivity;
 import org.techtown.samplerecorder.LogUtil;
 import org.techtown.samplerecorder.R;
 import org.techtown.samplerecorder.VolumeContentObserver;
@@ -78,24 +75,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         permissionCheck();
-        initState();
         init();
         dialogService = new DialogService(this);
         mLog = LogUtil.Companion;
     }
 
-    public void initState() {
-        source = MediaRecorder.AudioSource.MIC;
-        recordChannel = AudioFormat.CHANNEL_IN_MONO;
-        recordRate = 16000;
-        bufferSize = 1024;
-        type = AudioAttributes.USAGE_MEDIA;
-        playChannel = AudioFormat.CHANNEL_OUT_MONO;
-        playRate = 16000;
-        volumeType = AudioManager.STREAM_MUSIC;
-        setVolumeControlStream(volumeType);
-    }
-
+    @SuppressLint("SetTextI18n")
     public void init() {
         mAudioTrack = new AudioTrack();
 
@@ -103,26 +88,35 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar_main = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar_main);
-        getSupportActionBar().setTitle("음성 녹음");
 
         img_recording = findViewById(R.id.img_recording);
-        view_waveform = findViewById(R.id.view_waveForm);
-        text_timer = findViewById(R.id.text__timer);
-        btnSource = findViewById(R.id.btn_record_source);
-        btnRecordChannel = findViewById(R.id.btn_record_channel);
-        btnRecordRate = findViewById(R.id.btn_record_sampleRate);
-        btnBufferSize = findViewById(R.id.btn_record_bufferSize);
-        btn_record = findViewById(R.id.btn_record);
-
         img_playing = findViewById(R.id.img_playing);
+        view_waveform = findViewById(R.id.view_waveForm);
+        text_timer = findViewById(R.id.text_timer);
+
+        btnSource = findViewById(R.id.btn_record_source);
+        btnSource.setText(getString(R.string.source) + "\n" + getString(R.string.mic));
+
+        btnRecordChannel = findViewById(R.id.btn_record_channel);
+        btnRecordChannel.setText(getString(R.string.channel) + "\n" + getString(R.string.mono));
+        btnRecordRate = findViewById(R.id.btn_record_sampleRate);
+        btnRecordRate.setText(getString(R.string.rate) + "\n" + getString(R.string.rate_16000));
+        btnBufferSize = findViewById(R.id.btn_record_bufferSize);
+        btnBufferSize.setText(getString(R.string.buffer_size) + "\n" + getString(R.string.buffer_size_1024));
+
         btnType = findViewById(R.id.btn_play_type);
+        btnType.setText(getString(R.string.type) + "\n" + getString(R.string.media));
         btnPlayChannel = findViewById(R.id.btn_play_channel);
+        btnPlayChannel.setText(getString(R.string.channel) + "\n" + getString(R.string.mono));
         btnPlayRate = findViewById(R.id.btn_play_sampleRate);
-        btnVolume = findViewById(R.id.btn_play_volume);
+        btnPlayRate.setText(getString(R.string.rate) + "\n" + getString(R.string.rate_16000));
+
+        btn_record = findViewById(R.id.btn_record);
 
         final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         int nCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        btnVolume.setText("VOLUME\n" + String.valueOf(nCurrentVolume));
+        btnVolume = findViewById(R.id.btn_play_volume);
+        btnVolume.setText(getString(R.string.volume) + "\n" + nCurrentVolume);
 
         btn_play = findViewById(R.id.btn_play);
         btn_play.setEnabled(false);
@@ -214,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                             301);
                 }
 
-                Intent intent = new Intent(this, List.class);
+                Intent intent = new Intent(this, ListActivity.class);
                 intent.putExtra("sampleRate", playRate);
                 intent.putExtra("bufferSize", bufferSize);
                 intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -261,8 +255,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void record() {
-//        myLog.d("method activate");
-
         if (isRecording) {  // if "STOP" button clicked,
             isRecording = false;  // check : 함수 안으로 집어 넣으면 AudioRecord로 isRecording이 가끔씩 전달되지 않음
             mAudioRecord.stop();
@@ -280,8 +272,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void stopRecording() {
-//        myLog.d("method activate");
-
         recordHandler.removeMessages(0);
 
         img_recording.clearAnimation();
@@ -296,8 +286,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startRecording() {
-//        myLog.d("method activate");
-
         view_waveform.recreate();
         view_waveform.setChunkColor(getResources().getColor(R.color.record_red));
 
@@ -354,8 +342,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startPlaying() {
-//        myLog.d("method activate");
-
         // use this emerging bug like delay 300 at first play
 //        if (first_track) {
 //            try {

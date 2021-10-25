@@ -62,6 +62,18 @@ class DialogService(private val context: Context) {
     private var playChannelIndex = 0
     private var playRateIndex = 2
 
+    init {
+        source = MediaRecorder.AudioSource.MIC
+        type = AudioAttributes.USAGE_MEDIA
+        recordChannel = AudioFormat.CHANNEL_IN_MONO
+        playChannel = AudioFormat.CHANNEL_OUT_MONO
+        recordRate = 16000
+        playRate = 16000
+        bufferSize = 1024
+        volumeType = AudioManager.STREAM_MUSIC
+        mainUi.volumeControlStream = volumeType
+    }
+
     fun create(mode: String, setting: String) {
         when (setting) {
             context.getString(R.string.exit) -> {
