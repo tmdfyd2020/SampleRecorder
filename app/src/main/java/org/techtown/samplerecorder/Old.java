@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Main;
+package org.techtown.samplerecorder;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -29,15 +29,14 @@ import androidx.core.content.ContextCompat;
 
 import com.visualizer.amplitude.AudioRecordView;
 
-import org.techtown.samplerecorder.DialogService;
 import org.techtown.samplerecorder.List.ListActivity;
-import org.techtown.samplerecorder.LogUtil;
-import org.techtown.samplerecorder.R;
-import org.techtown.samplerecorder.VolumeContentObserver;
+import org.techtown.samplerecorder.Main.AudioRecord;
+import org.techtown.samplerecorder.Main.AudioTrack;
+import org.techtown.samplerecorder.Main.Queue;
 
 import lib.kingja.switchbutton.SwitchMultiButton;
 
-public class MainActivity extends AppCompatActivity {
+public class Old extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
 

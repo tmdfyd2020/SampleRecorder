@@ -13,6 +13,8 @@ import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static org.techtown.samplerecorder.Main.MainActivity.filePath;
+
 public class AudioRecord {
 
     private final String TAG = this.getClass().getSimpleName();
@@ -48,7 +50,7 @@ public class AudioRecord {
 
         if (fileDrop) {
 //            file = new File("/mnt/sdcard/audioDrop/", fileName(System.currentTimeMillis()));
-            file = new File("/data/user/0/org.techtown.samplerecorder/file/", fileName(System.currentTimeMillis()));
+            file = new File(filePath, fileName(System.currentTimeMillis()));
             myLog.d(file.getAbsolutePath());
             outputStream = null;
 
@@ -116,8 +118,6 @@ public class AudioRecord {
     }
 
     public void release(Context context, boolean fileDrop) {
-//        myLog.d("method activate");
-
         if (fileDrop) {
             try {
                 outputStream.flush();  // TODO : null reference issue

@@ -18,6 +18,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static org.techtown.samplerecorder.Main.MainActivity.filePath;
+
 public class ListActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getSimpleName();
@@ -36,17 +38,17 @@ public class ListActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("목록");
 
         Intent myIntent = getIntent();
-        int sampleRate = myIntent.getIntExtra("sampleRate", 16000);
-        int bufferSize = myIntent.getIntExtra("bufferSize", 1024);
+        int sampleRate = myIntent.getIntExtra(getString(R.string.rate), 16000);
+        int bufferSize = myIntent.getIntExtra(getString(R.string.buffer_size), 1024);
 
         // 리사이클러뷰에 표시할 데이터 리스트 생성.
 //        File filePath = new File("/mnt/sdcard/audioDrop/");
-        File filePath = new File("/data/user/0/org.techtown.samplerecorder/file/");
-        if (filePath.exists() == false) {
+        File file = new File(filePath);
+        if (file.exists() == false) {
             return;
         }
 
-        File[] files = filePath.listFiles();
+        File[] files = file.listFiles();
         ArrayList<File> arrayList = new ArrayList<>();
 
         for (int i = 0; i < files.length; i++) {
