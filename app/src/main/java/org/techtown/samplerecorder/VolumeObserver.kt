@@ -5,10 +5,9 @@ import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
-import org.techtown.samplerecorder.Main.MainActivity
-import org.techtown.samplerecorder.Main.MainActivity.volumeType
+import org.techtown.samplerecorder.MainActivity.Companion.volumeType
 
-class VolumeContentObserver(private val context: Context, handler: Handler?) : ContentObserver(handler) {
+class VolumeObserver(private val context: Context, handler: Handler?) : ContentObserver(handler) {
 
     private var audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val mainUi = context as MainActivity
@@ -16,7 +15,6 @@ class VolumeContentObserver(private val context: Context, handler: Handler?) : C
     @SuppressLint("SetTextI18n")
     override fun onChange(selfChange: Boolean) {
         super.onChange(selfChange)
-        mainUi.btnVolume.text =
-            "${context.getString(R.string.volume)}\n${audioManager.getStreamVolume(volumeType)}"
+        mainUi.changeTextUi(context.getString(R.string.volume), "${audioManager.getStreamVolume(volumeType)}")
     }
 }

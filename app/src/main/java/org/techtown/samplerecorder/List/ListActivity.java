@@ -12,13 +12,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.techtown.samplerecorder.MainActivity;
 import org.techtown.samplerecorder.R;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-
-import static org.techtown.samplerecorder.Main.MainActivity.filePath;
 
 public class ListActivity extends AppCompatActivity {
 
@@ -43,7 +42,7 @@ public class ListActivity extends AppCompatActivity {
 
         // 리사이클러뷰에 표시할 데이터 리스트 생성.
 //        File filePath = new File("/mnt/sdcard/audioDrop/");
-        File file = new File(filePath);
+        File file = new File(MainActivity.Companion.getFilePath());
         if (file.exists() == false) {
             return;
         }
