@@ -3,28 +3,25 @@ package org.techtown.samplerecorder.Main
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.techtown.samplerecorder.AppModule.dataToShort
 import org.techtown.samplerecorder.MainActivity.Companion.autoStop
+import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.isPlaying
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import org.techtown.samplerecorder.MainActivity.Companion.playChannel
+import org.techtown.samplerecorder.MainActivity.Companion.playRate
+import org.techtown.samplerecorder.MainActivity.Companion.type
 
 class AudioTrack {
     private val TAG = this.javaClass.simpleName
 
     private var audioTrack: AudioTrack? = null
-    private var playThread: Thread? = null
-    private var audioData: ByteArray? = null
-    private var track_bufferSize = 0
+    private var job: Job? = null
 
-    fun init(bufferSize: Int) {
-//        myLog.d("method activate");
-        track_bufferSize = bufferSize
-        audioData = ByteArray(track_bufferSize)
-    }
-
-    fun play(type: Int, channel: Int, sampleRate: Int, queue: Queue) {
-//        myLog.d("method activate");
-        myLog.d("play sample rate : $sampleRate")
+    fun play(queue: Queue) {
         if (audioTrack == null) {
             audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(
@@ -36,57 +33,43 @@ class AudioTrack {
                 .setAudioFormat(
                     AudioFormat.Builder()
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setSampleRate(sampleRate)
-                        .setChannelMask(channel)
+                        .setSampleRate(playRate)
+                        .setChannelMask(playChannel)
                         .build()
                 )
-                .setBufferSizeInBytes(track_bufferSize * 2)
+                .setBufferSizeInBytes(bufferSize * 2)
                 .build()
         }
-        playThread = Thread {
+        var audioData: ByteArray?
+
+        job = CoroutineScope(Dispatchers.IO).launch {
             audioTrack!!.play()
             while (isPlaying) {
                 audioData = queue.dequeue()
-                audioTrack!!.write(audioData!!, 0, track_bufferSize)
+                audioTrack!!.write(audioData!!, 0, bufferSize)
+
                 if (queue.isEmpty) {
                     autoStop = true
                     queue.copy()
                     break
                 }
 
-                // using draw waveform in MainActivity
-                dataMax = 0
-                for (i in audioData!!.indices) {
-                    val buffer = ByteBuffer.wrap(audioData)
-                    buffer.order(ByteOrder.LITTLE_ENDIAN)
-                    dataMax = 10 * Math.abs(buffer.short.toInt())
-                }
+                playWave = 0  // Waveform
+                for (i in audioData!!.indices) playWave = dataToShort(audioData)
             }
         }
-        playThread!!.start()
     }
 
     fun stop() {
-//        myLog.d("method activate");
-        if (audioTrack != null && audioTrack!!.state != AudioTrack.STATE_UNINITIALIZED) {
-            if (audioTrack!!.playState != AudioTrack.PLAYSTATE_STOPPED) {
-                try {
-                    audioTrack!!.stop()
-                } catch (e: IllegalStateException) {
-                    e.printStackTrace()
-                }
-                audioTrack!!.release()
-                audioTrack = null
-                playThread = null
-            }
+        if (audioTrack != null) {
+            audioTrack!!.stop()
+            audioTrack!!.release()
+            audioTrack = null
+            job = null
         }
     }
 
-    fun release() {
-//        myLog.d("method activate");
-    }
-
     companion object {
-        var dataMax = 0
+        var playWave = 0
     }
 }

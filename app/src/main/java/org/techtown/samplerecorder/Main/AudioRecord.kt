@@ -5,6 +5,12 @@ import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.techtown.samplerecorder.AppModule.dataToShort
+import org.techtown.samplerecorder.LogUtil
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.filePath
 import org.techtown.samplerecorder.MainActivity.Companion.isRecording
@@ -15,22 +21,19 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class AudioRecord {
     private val TAG = this.javaClass.simpleName
 
     private var audioRecord: AudioRecord? = null
-    private var recordThread: Thread? = null
     private var outputStream: FileOutputStream? = null
     private var file: File? = null
+    private var job: Job? = null
 
-    fun start(queue: Queue, fileDrop: Boolean) {  // TODO 함수로 다 쪼개기
+    fun start(queue: Queue, fileDrop: Boolean) {
         if (audioRecord == null) {
             audioRecord = AudioRecord(
                 source,
@@ -42,74 +45,59 @@ class AudioRecord {
         }
         var audioData: ByteArray?
 
-        if (fileDrop) {
-            file = File(filePath, fileName())
-            outputStream = null
-            try { outputStream = FileOutputStream(file) }
-            catch (e: FileNotFoundException) { e.printStackTrace() }
-        }
+        if (fileDrop) fileCreate()
         
         audioRecord!!.startRecording()
-        
-        recordThread = Thread {  // TODO Coroutine
-            var dataSize: Int
 
+        job = CoroutineScope(Dispatchers.IO).launch {
+            var dataSize: Int
             while (isRecording) {
-                audioData = ByteArray(bufferSize) // prevent from overwritting data
-                dataSize = audioRecord!!.read(
-                    audioData!!,
-                    0,
-                    bufferSize
-                ) // audioRecord -> audioData
+                audioData = ByteArray(bufferSize)
+                dataSize = audioRecord!!.read(audioData!!, 0, bufferSize)
                 queue.enqueue(audioData)
 
-                // using draw waveform in MainActivity
-                dataMax = 0
-                for (i in audioData!!.indices) {
-                    val buffer = ByteBuffer.wrap(audioData)
-                    buffer.order(ByteOrder.LITTLE_ENDIAN)
-                    dataMax = 10 * abs(buffer.short.toInt())
-                }
-                
-                if (fileDrop) {
-                    try {
-                        if (outputStream != null) {
-                            outputStream!!.write(audioData, 0, dataSize)
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
+                recordWave = 0  // Waveform
+                for (i in audioData!!.indices) recordWave = dataToShort(audioData)
+
+                if (fileDrop) fileWrite(audioData!!, dataSize)  // File Write
             }
         }
-        recordThread!!.start()
     }
 
-    fun stop() {  // TODO Merge
+    fun stop(context: Context?, fileDrop: Boolean) {
         if (audioRecord != null) {
-            if (audioRecord!!.state != AudioRecord.RECORDSTATE_STOPPED) {
-                try {
-                    audioRecord!!.stop()
-                } catch (e: IllegalStateException) {
-                    e.printStackTrace()
-                }
-                audioRecord!!.release()
-                audioRecord = null
-                recordThread = null
-            }
+            audioRecord!!.stop()
+            audioRecord!!.release()
+            audioRecord = null
+            job = null
+        }
+        if (fileDrop) {
+            fileSave()
+            LogUtil.i(TAG, "file path : ${file!!.name}")
+            Toast.makeText(context, file!!.name + " 저장 완료", Toast.LENGTH_LONG).show()
         }
     }
 
-    fun release(context: Context?, fileDrop: Boolean) {
-        if (fileDrop) {
-            try {
-                outputStream!!.flush() // TODO : null reference issue
-                outputStream!!.close()
-            } catch (e: IOException) {
-                myLog.d("exception while closing output stream $e")
-                e.printStackTrace()
-            }
-            Toast.makeText(context, file!!.absolutePath + " 저장 완료", Toast.LENGTH_LONG).show()
+    private fun fileCreate() {
+        file = File(filePath, fileName())
+        outputStream = null
+        try { outputStream = FileOutputStream(file) }
+        catch (e: FileNotFoundException) { e.printStackTrace() }
+    }
+
+    private fun fileWrite(data: ByteArray, size: Int) {
+        if (outputStream != null) {
+            try { outputStream!!.write(data, 0, size) }
+            catch (e: IOException) { e.printStackTrace() }
+        }
+    }
+
+    private fun fileSave() {
+        try {
+            outputStream!!.flush()
+            outputStream!!.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 
@@ -121,6 +109,6 @@ class AudioRecord {
     }
 
     companion object {
-        var dataMax = 0
+        var recordWave = 0
     }
 }

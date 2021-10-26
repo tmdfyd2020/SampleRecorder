@@ -27,7 +27,9 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import org.techtown.samplerecorder.List.ListActivity
 import org.techtown.samplerecorder.Main.AudioRecord
+import org.techtown.samplerecorder.Main.AudioRecord.Companion.recordWave
 import org.techtown.samplerecorder.Main.AudioTrack
+import org.techtown.samplerecorder.Main.AudioTrack.Companion.playWave
 import org.techtown.samplerecorder.Main.Queue
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
@@ -154,76 +156,82 @@ class MainActivity : AppCompatActivity() {
             startRecording()
         } else {  // 정지 버튼 클릭 시
             isRecording = false
-            mAudioRecord.stop()
-            mAudioRecord.release(this, fileDrop)
+            mAudioRecord.stop(this, fileDrop)
             stopRecording()
         }
     }
 
     private fun startRecording() {
+        // Waveform
         waveform.recreate()
         waveform.chunkColor = resources.getColor(R.color.record_red)
 
+        // Record time
         startTime = SystemClock.elapsedRealtime()
         val recordMsg = recordHandler.obtainMessage().apply {
             what = MESSAGE_RECORD
         }
         recordHandler.sendMessage(recordMsg)
 
+        // Ui
         with (binding) {
-            btnRecord.text = "Stop"
-            btnRecordBufferSize.isEnabled = true
-            imgRecording.visibility = View.VISIBLE
             textTimer.visibility = View.VISIBLE
+            btnRecord.text = getString(R.string.stop)
+            imgRecording.visibility = View.VISIBLE
             setAnimation(imgRecording, btnRecord)
+            btnPlay.isEnabled = false
         }
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun stopRecording() {
+        // Record time
         recordHandler.removeMessages(0)
 
+        // Ui
         with (binding) {
-            imgRecording.clearAnimation()
-            imgRecording.visibility = View.INVISIBLE
-            btnRecord.clearAnimation()
-            btnRecord.text = "Record"
-            btnRecord.isEnabled = true
-            btnRecord.background = getDrawable(R.drawable.btn_record_active)
+            with (imgRecording) {
+                clearAnimation()
+                visibility = View.INVISIBLE
+            }
+            with (btnRecord) {
+                clearAnimation()
+                text = getString(R.string.record)
+            }
             btnPlay.isEnabled = true
         }
     }
 
     private fun play() {
-        if (!isPlaying) {  // if "STOP" button clicked,
-//            mAudioTrack = AudioTrack()
+        if (!isPlaying) {  // 재생 버튼 클릭 시
             isPlaying = true
-            mAudioTrack.init(MainActivity.bufferSize)
-            mAudioTrack.play(type, playChannel, playRate, queue!!)
+            mAudioTrack.play(queue!!)
             startPlaying()
-        } else {  // if "PLAY" button clicked,
+        } else {  // 정지 버튼 클릭 시
             isPlaying = false
             mAudioTrack.stop()
-            mAudioTrack.release()
             stopPlaying()
         }
     }
 
     private fun startPlaying() {
+        // Waveform
         waveform.recreate()
         waveform.chunkColor = resources.getColor(R.color.play_blue)
 
+        // Play time
         startTime = SystemClock.elapsedRealtime()
         val playMsg = playHandler.obtainMessage().apply {
             what = MESSAGE_PLAY
         }
         playHandler.sendMessage(playMsg)
 
+        // Ui
         with (binding) {
             imgPlaying.visibility = View.VISIBLE
-            btnRecord.isEnabled = false
-            btnPlay.text = "Stop"
+            btnPlay.text = getString(R.string.stop)
             setAnimation(imgPlaying, btnPlay)
+            btnRecord.isEnabled = false
         }
     }
 
@@ -231,11 +239,15 @@ class MainActivity : AppCompatActivity() {
         playHandler.removeMessages(0)
 
         with (binding) {
-            imgPlaying.clearAnimation()
-            imgPlaying.visibility = View.INVISIBLE
+            with (imgPlaying) {
+                clearAnimation()
+                visibility = View.INVISIBLE
+            }
+            with (btnPlay) {
+                clearAnimation()
+                text = getString(R.string.play)
+            }
             btnRecord.isEnabled = true
-            btnPlay.clearAnimation()
-            btnPlay.text = "Play"
         }
     }
 
@@ -264,7 +276,7 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("HandlerLeak")
         override fun handleMessage(msg: Message) {
             binding.textTimer.text = time
-            waveform.update(AudioRecord.dataMax)
+            waveform.update(recordWave)
             sendEmptyMessage(0)
         }
     }
@@ -273,14 +285,13 @@ class MainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             if (!autoStop) {
                 binding.textTimer.text = time
-                waveform.update(AudioTrack.dataMax)
+                waveform.update(playWave)
                 sendEmptyMessage(0)
             } else {
 //                myLog.d("autoStop 발생!");
                 autoStop = false
                 isPlaying = false
                 mAudioTrack.stop()
-                mAudioTrack.release()
 
                 with (binding) {
                     imgPlaying.clearAnimation()

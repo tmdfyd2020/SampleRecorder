@@ -10,6 +10,7 @@
     <!-- Audio Setting -->
     <string name="record">Record</string>
     <string name="play">Play</string>
+    <string name="stop">Stop</string>
 
     <!-- Audio Record Source -->
     <string name="source">Source</string>
