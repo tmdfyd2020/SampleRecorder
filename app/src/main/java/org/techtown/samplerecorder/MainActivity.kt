@@ -25,12 +25,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import org.techtown.samplerecorder.List.ListActivity
-import org.techtown.samplerecorder.Main.AudioRecord
-import org.techtown.samplerecorder.Main.AudioRecord.Companion.recordWave
-import org.techtown.samplerecorder.Main.AudioTrack
-import org.techtown.samplerecorder.Main.AudioTrack.Companion.playWave
-import org.techtown.samplerecorder.Main.Queue
+import org.techtown.samplerecorder.Audio.AudioRecord
+import org.techtown.samplerecorder.Audio.AudioRecord.Companion.recordWave
+import org.techtown.samplerecorder.Audio.AudioTrack
+import org.techtown.samplerecorder.Audio.AudioTrack.Companion.playWave
+import org.techtown.samplerecorder.Audio.Queue
+import org.techtown.samplerecorder.List.ItemListActivity
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -112,7 +112,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val menuInflater = menuInflater
         menuInflater.inflate(R.menu.menu_main_toolbar, menu)
         return true
     }
@@ -122,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.menu_exit -> dialogService.create("", getString(R.string.exit))
             R.id.list_play -> {
-                val intent = Intent(this, ListActivity::class.java).apply {
+                val intent = Intent(this, ItemListActivity::class.java).apply {
                     putExtra(getString(R.string.rate), playRate)
                     putExtra(getString(R.string.buffer_size), bufferSize)
                     addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -283,24 +282,13 @@ class MainActivity : AppCompatActivity() {
 
     private var playHandler: Handler = object : Handler() {
         override fun handleMessage(msg: Message) {
-            if (!autoStop) {
+            if (!emptyQueue) {
                 binding.textTimer.text = time
                 waveform.update(playWave)
                 sendEmptyMessage(0)
             } else {
-//                myLog.d("autoStop 발생!");
-                autoStop = false
-                isPlaying = false
-                mAudioTrack.stop()
-
-                with (binding) {
-                    imgPlaying.clearAnimation()
-                    imgPlaying.visibility = View.INVISIBLE
-                    btnRecord.isEnabled = true
-                    btnPlay.clearAnimation()
-                    btnPlay.text = "Play"
-                }
-                this.removeMessages(0)
+                emptyQueue = false
+                play()
             }
         }
     }
@@ -335,7 +323,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        applicationContext.contentResolver.unregisterContentObserver(volumeObserver!!)
+        applicationContext.contentResolver.unregisterContentObserver(volumeObserver)
     }
 
     companion object {
@@ -347,9 +335,9 @@ class MainActivity : AppCompatActivity() {
 
         var isRecording = false
         var isPlaying = false
-        var autoStop = false
+        var emptyQueue = false
 
-        var filePath = ""
+        var filePath = ""  // Internal Memory
 
         var source = MediaRecorder.AudioSource.MIC
         var type = AudioAttributes.USAGE_MEDIA

@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Main
+package org.techtown.samplerecorder.Audio
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -54,7 +54,7 @@ class AudioRecord {
             while (isRecording) {
                 audioData = ByteArray(bufferSize)
                 dataSize = audioRecord!!.read(audioData!!, 0, bufferSize)
-                queue.enqueue(audioData)
+                queue.enqueue(audioData!!)
 
                 recordWave = 0  // Waveform
                 for (i in audioData!!.indices) recordWave = dataToShort(audioData)

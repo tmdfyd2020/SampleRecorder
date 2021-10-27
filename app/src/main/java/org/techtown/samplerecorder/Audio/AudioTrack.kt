@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Main
+package org.techtown.samplerecorder.Audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.techtown.samplerecorder.AppModule.dataToShort
-import org.techtown.samplerecorder.MainActivity.Companion.autoStop
+import org.techtown.samplerecorder.MainActivity.Companion.emptyQueue
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.isPlaying
 import org.techtown.samplerecorder.MainActivity.Companion.playChannel
@@ -49,7 +49,7 @@ class AudioTrack {
                 audioTrack!!.write(audioData!!, 0, bufferSize)
 
                 if (queue.isEmpty) {
-                    autoStop = true
+                    emptyQueue = true
                     queue.copy()
                     break
                 }
