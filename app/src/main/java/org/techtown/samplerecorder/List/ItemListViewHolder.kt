@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import org.techtown.samplerecorder.databinding.ItemBinding
 
-class ItemListViewHolder (val binding: ItemBinding) : RecyclerView.ViewHolder(binding.root) {
+class ItemListViewHolder (private val binding: ItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
     val playButton = binding.btnItemPlay
     val fileName = binding.itemText
