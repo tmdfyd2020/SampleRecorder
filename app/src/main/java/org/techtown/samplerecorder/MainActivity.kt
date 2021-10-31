@@ -25,10 +25,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import org.techtown.samplerecorder.Audio.AudioRecord
-import org.techtown.samplerecorder.Audio.AudioRecord.Companion.recordWave
-import org.techtown.samplerecorder.Audio.AudioTrack
-import org.techtown.samplerecorder.Audio.AudioTrack.Companion.playWave
+import org.techtown.samplerecorder.Audio.RecordService
+import org.techtown.samplerecorder.Audio.RecordService.Companion.recordWave
+import org.techtown.samplerecorder.Audio.TrackService
+import org.techtown.samplerecorder.Audio.TrackService.Companion.playWave
 import org.techtown.samplerecorder.Audio.Queue
 import org.techtown.samplerecorder.List.ItemListActivity
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
@@ -38,8 +38,8 @@ class MainActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityMainBinding
 
-    private val mAudioRecord by lazy { AudioRecord() }
-    private val mAudioTrack by lazy { AudioTrack() }
+    private val audioRecord by lazy { RecordService() }
+    private val audioTrack by lazy { TrackService() }
     private val waveform by lazy { binding.viewWaveForm }
     private val switchButton by lazy { binding.switchButton }
     private val sharedPreferences by lazy { getSharedPreferences(DATABASE, MODE_PRIVATE) }
@@ -151,11 +151,11 @@ class MainActivity : AppCompatActivity() {
         if (!isRecording) {  // 녹음 버튼 클릭 시
             queue = Queue()
             isRecording = true
-            mAudioRecord.start(queue!!, fileDrop)
+            audioRecord.start(queue!!, fileDrop)
             startRecording()
         } else {  // 정지 버튼 클릭 시
             isRecording = false
-            mAudioRecord.stop(this, fileDrop)
+            audioRecord.stop(this, fileDrop)
             stopRecording()
         }
     }
@@ -204,11 +204,11 @@ class MainActivity : AppCompatActivity() {
     private fun play() {
         if (!isPlaying) {  // 재생 버튼 클릭 시
             isPlaying = true
-            mAudioTrack.play(queue!!)
+            audioTrack.play(queue!!)
             startPlaying()
         } else {  // 정지 버튼 클릭 시
             isPlaying = false
-            mAudioTrack.stop()
+            audioTrack.stop()
             stopPlaying()
         }
     }

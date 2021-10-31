@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class AudioRecord {
+class RecordService {
     private val TAG = this.javaClass.simpleName
 
     private var audioRecord: AudioRecord? = null

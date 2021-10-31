@@ -1,5 +1,7 @@
 package org.techtown.samplerecorder.List
 
+import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -27,10 +29,13 @@ class ItemListActivity : AppCompatActivity() {
         initState()
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     private fun initUi() {
         val toolbar = binding.toolbarList
         setSupportActionBar(toolbar)
-        supportActionBar?.setTitle("목록")
+        supportActionBar?.title = "목록"
+        BUTTON_PLAY = getDrawable(R.drawable.png_play)!!
+        BUTTON_PAUSE = getDrawable(R.drawable.png_pause)!!
     }
 
     private fun initFiles() {
@@ -58,5 +63,10 @@ class ItemListActivity : AppCompatActivity() {
             R.id.list_back -> finish()
         }
         return true
+    }
+
+    companion object {
+        lateinit var BUTTON_PLAY: Drawable
+        lateinit var BUTTON_PAUSE: Drawable
     }
 }
