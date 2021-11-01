@@ -1,5 +1,6 @@
 package org.techtown.samplerecorder.List
 
+import android.app.AlertDialog
 import android.content.Context
 import android.view.View
 import android.widget.SeekBar
@@ -8,6 +9,7 @@ import org.techtown.samplerecorder.Audio.TrackService
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PAUSE
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
 import org.techtown.samplerecorder.LogUtil
+import org.techtown.samplerecorder.R
 import org.techtown.samplerecorder.databinding.ItemBinding
 import java.io.File
 import java.io.RandomAccessFile
@@ -21,10 +23,10 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
     val seekBar = binding.seekbarPlayState
     private val audioTrack by lazy { TrackService() }
 
-
     private var randomFile: RandomAccessFile? = null
     private lateinit var currentFile: File
     private var currentPosition: Int? = -1
+    private lateinit var fileList: MutableList<File>
 
     fun setData(fileList: MutableList<File>, file: File, position: Int) {
         currentFile = file
@@ -37,22 +39,21 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
         var seekPoint = 0
         // 시크바 드래그 시
         override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-            seekPoint = progress
+            if (fromUser) seekPoint = progress
         }
         // 시크바 thumb 터치 시
         override fun onStartTrackingTouch(seekBar: SeekBar) {
-            LogUtil.d(TAG, "시크바 터치 발생")
             FLAG_PAUSE_STATE = true
+            FLAG_CAN_PLAY = true
+            playButton.setImageDrawable(BUTTON_PLAY)
         }
         // 시크바 터치 해제 시
         override fun onStopTrackingTouch(seekBar: SeekBar) {
-            LogUtil.d(TAG, "실행 포인트 : ${seekPoint.toLong()}")
             FLAG_CAN_PLAY = false
             playButton.setImageDrawable(BUTTON_PAUSE)
-            randomFile = RandomAccessFile(currentFile, "rw")
+            randomFile = RandomAccessFile(currentFile, "r")
             audioTrack.create()
-            audioTrack.pausePoint = seekPoint.toLong()  // TODO 0으로 설정 시 소음없이 진행
-            audioTrack.play(randomFile!!, seekBar, playButton)
+            audioTrack.play(randomFile!!, seekBar, playButton, 0)  // TODO seekPoint 시 일정 확률로 노이즈
         }
     }
 
@@ -65,6 +66,33 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
                 false -> pauseList()
             }
         }
+
+//        binding.root.setOnLongClickListener { v ->
+//            val file = fileList[currentPosition!!]
+//            val builder = AlertDialog.Builder(
+//                v.context,
+//                R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
+//            )
+//            builder.setTitle("Delete")
+//                .setMessage("Are you sure you want to delete?")
+//                .setIcon(listContext.getDrawable(R.drawable.png_delete))
+//                .setPositiveButton(
+//                    Html.fromHtml("<font color='#3399FF'>Yes</font>")
+//                ) { dialog, which ->
+//                    file.delete()
+//                    fileList.removeAt(adapterPosition)
+//                    notifyItemRemoved(adapterPosition)
+//                    notifyItemRangeChanged(adapterPosition, fileList.size)
+//                    Toast.makeText(listContext, "파일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+//                }
+//                .setNegativeButton(
+//                    Html.fromHtml("<font color='#F06292'>No</font>")
+//                ) { dialog, which -> dialog.cancel() }
+//            val dialog = builder.create()
+//            dialog.window!!.setGravity(Gravity.CENTER)
+//            dialog.show()
+//            false
+//        }
     }
 
     private fun playList() {
@@ -104,37 +132,6 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
             }
         }
     }
-
-
-//    init {
-//        // if click itemView on LongClick, show delete dialog
-//        itemView.setOnLongClickListener { v ->
-//            val file = fileList[adapterPosition]
-//            val builder = AlertDialog.Builder(
-//                v.context,
-//                R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
-//            )
-//            builder.setTitle("Delete")
-//                .setMessage("Are you sure you want to delete?")
-//                .setIcon(listContext.getDrawable(R.drawable.png_delete))
-//                .setPositiveButton(
-//                    Html.fromHtml("<font color='#3399FF'>Yes</font>")
-//                ) { dialog, which ->
-//                    file.delete()
-//                    fileList.removeAt(adapterPosition)
-//                    notifyItemRemoved(adapterPosition)
-//                    notifyItemRangeChanged(adapterPosition, fileList.size)
-//                    Toast.makeText(listContext, "파일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-//                }
-//                .setNegativeButton(
-//                    Html.fromHtml("<font color='#F06292'>No</font>")
-//                ) { dialog, which -> dialog.cancel() }
-//            val dialog = builder.create()
-//            dialog.window!!.setGravity(Gravity.CENTER)
-//            dialog.show()
-//            false
-//        }
-//    }
 
     companion object {
         var FLAG_PAUSE_STATE = false  // 멈춘 지점부터 시작할 지, 처음부터 시작할 지

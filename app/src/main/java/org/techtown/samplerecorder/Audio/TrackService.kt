@@ -21,6 +21,8 @@ import org.techtown.samplerecorder.MainActivity.Companion.isPlaying
 import org.techtown.samplerecorder.MainActivity.Companion.playChannel
 import org.techtown.samplerecorder.MainActivity.Companion.playRate
 import org.techtown.samplerecorder.MainActivity.Companion.type
+import java.io.IOError
+import java.io.IOException
 import java.io.RandomAccessFile
 
 class TrackService {
@@ -74,13 +76,14 @@ class TrackService {
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    fun play(file: RandomAccessFile, seekBar: SeekBar, button: ImageView) {
+    fun play(file: RandomAccessFile, seekBar: SeekBar, button: ImageView, seekPoint: Int = -1) {
         val audioData = ByteArray(bufferSize)
-        job = CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(Dispatchers.Default).launch {
             audioTrack!!.play()
             if (FLAG_PAUSE_STATE) {
                 FLAG_PAUSE_STATE = false
-                file.seek(pausePoint!!)
+                if (seekPoint == -1) file.seek(pausePoint!!)
+                else file.seek(seekPoint.toLong())
             }
             var i = 0
             while (i != -1) {
@@ -93,29 +96,20 @@ class TrackService {
                 }
             }
             file.close()
-            LogUtil.w(TAG, "위치 확인")
+            stop()
             button.setImageDrawable(BUTTON_PLAY)
             FLAG_CAN_PLAY = true
-            stop()
         }
     }
 
     fun stop() {
         if (audioTrack != null) {
+            audioTrack!!.flush()
             audioTrack!!.stop()
             audioTrack!!.release()
             audioTrack = null
-            job!!.cancel()  // job = null?
+            job!!.cancel()
         }
-
-//        if (audioTrack != null && audioTrack!!.state != AudioTrack.STATE_UNINITIALIZED) {
-//            if (audioTrack!!.playState != AudioTrack.PLAYSTATE_STOPPED) {
-//                audioTrack!!.stop()
-//                audioTrack!!.release(); // 오디오 트랙이 잡은 모든 리소스를 해제시킨다.
-//                audioTrack = null
-//                job = null
-//            }
-//        }
     }
 
     companion object {
