@@ -17,6 +17,7 @@ import org.techtown.samplerecorder.MainActivity.Companion.isRecording
 import org.techtown.samplerecorder.MainActivity.Companion.recordChannel
 import org.techtown.samplerecorder.MainActivity.Companion.recordRate
 import org.techtown.samplerecorder.MainActivity.Companion.source
+import org.techtown.samplerecorder.R
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -74,7 +75,7 @@ class RecordService {
         if (fileDrop) {
             fileSave()
             LogUtil.i(TAG, "file path : ${file!!.name}")
-            Toast.makeText(context, file!!.name + " 저장 완료", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, file!!.name + " ${context!!.getString(R.string.toast_save)}", Toast.LENGTH_LONG).show()
         }
     }
 

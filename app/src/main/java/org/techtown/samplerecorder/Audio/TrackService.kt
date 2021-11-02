@@ -13,16 +13,12 @@ import org.techtown.samplerecorder.AppModule.dataToShort
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
 import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_CAN_PLAY
 import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_PAUSE_STATE
-import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_SEEKBAR_PAUSE
-import org.techtown.samplerecorder.LogUtil
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.emptyQueue
 import org.techtown.samplerecorder.MainActivity.Companion.isPlaying
 import org.techtown.samplerecorder.MainActivity.Companion.playChannel
 import org.techtown.samplerecorder.MainActivity.Companion.playRate
 import org.techtown.samplerecorder.MainActivity.Companion.type
-import java.io.IOError
-import java.io.IOException
 import java.io.RandomAccessFile
 
 class TrackService {

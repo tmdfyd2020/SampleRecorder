@@ -1,9 +1,13 @@
 package org.techtown.samplerecorder.List
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.text.Html
+import android.view.Gravity
 import android.view.View
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import org.techtown.samplerecorder.Audio.TrackService
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PAUSE
@@ -14,7 +18,7 @@ import org.techtown.samplerecorder.databinding.ItemBinding
 import java.io.File
 import java.io.RandomAccessFile
 
-class ItemListViewHolder (private val binding: ItemBinding, val context: Context, val adapter: ItemListAdapter) : RecyclerView.ViewHolder(binding.root) {
+class ItemListViewHolder(binding: ItemBinding, private val adapter: ItemListAdapter) : RecyclerView.ViewHolder(binding.root) {
 
     private val TAG = this.javaClass.simpleName
 
@@ -31,7 +35,7 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
     fun setData(fileList: MutableList<File>, file: File, position: Int) {
         currentFile = file
         currentPosition = position
-        currentPosition = position
+        this.fileList = fileList
         fileName.text = file.name
     }
 
@@ -67,32 +71,10 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
             }
         }
 
-//        binding.root.setOnLongClickListener { v ->
-//            val file = fileList[currentPosition!!]
-//            val builder = AlertDialog.Builder(
-//                v.context,
-//                R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
-//            )
-//            builder.setTitle("Delete")
-//                .setMessage("Are you sure you want to delete?")
-//                .setIcon(listContext.getDrawable(R.drawable.png_delete))
-//                .setPositiveButton(
-//                    Html.fromHtml("<font color='#3399FF'>Yes</font>")
-//                ) { dialog, which ->
-//                    file.delete()
-//                    fileList.removeAt(adapterPosition)
-//                    notifyItemRemoved(adapterPosition)
-//                    notifyItemRangeChanged(adapterPosition, fileList.size)
-//                    Toast.makeText(listContext, "파일이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-//                }
-//                .setNegativeButton(
-//                    Html.fromHtml("<font color='#F06292'>No</font>")
-//                ) { dialog, which -> dialog.cancel() }
-//            val dialog = builder.create()
-//            dialog.window!!.setGravity(Gravity.CENTER)
-//            dialog.show()
-//            false
-//        }
+        binding.root.setOnLongClickListener { v ->
+            removeListDialog(v.context)
+            false
+        }
     }
 
     private fun playList() {
@@ -133,10 +115,30 @@ class ItemListViewHolder (private val binding: ItemBinding, val context: Context
         }
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun removeListDialog(context: Context) {
+        val builder = AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar)
+        builder.setTitle(context.getString(R.string.delete))
+            .setMessage(context.getString(R.string.delete_message))
+            .setIcon(context.getDrawable(R.drawable.png_delete))
+            .setPositiveButton(Html.fromHtml("<font color='#3399FF'>${context.getString(R.string.yes)}</font>")) { _, _ ->
+                currentFile.delete()
+                fileList.removeAt(currentPosition!!)
+                adapter.notifyItemRemoved(currentPosition!!)
+                adapter.notifyItemRangeChanged(currentPosition!!, fileList.size)
+                Toast.makeText(context, context.getString(R.string.toast_delete), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(
+                Html.fromHtml("<font color='#F06292'>${context.getString(R.string.no)}</font>")
+            ) { dialog, _ -> dialog.cancel() }
+        val dialog = builder.create()
+        dialog.window!!.setGravity(Gravity.CENTER)
+        dialog.show()
+    }
+
     companion object {
         var FLAG_PAUSE_STATE = false  // 멈춘 지점부터 시작할 지, 처음부터 시작할 지
         var FLAG_CAN_PLAY = true      // 재생 버튼 클릭 가능 | 중지 버튼 클릭 가능
         var PREVIOUS_FILE_POSITION = -1
-        var FLAG_SEEKBAR_PAUSE = false
     }
 }

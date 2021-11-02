@@ -7,6 +7,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.MediaRecorder
+import android.text.Html
 import android.text.Html.fromHtml
 import android.view.Gravity
 import android.view.View
@@ -14,9 +15,11 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import org.techtown.samplerecorder.List.ItemListAdapter
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.playChannel
 import org.techtown.samplerecorder.MainActivity.Companion.playRate
@@ -25,6 +28,7 @@ import org.techtown.samplerecorder.MainActivity.Companion.recordRate
 import org.techtown.samplerecorder.MainActivity.Companion.source
 import org.techtown.samplerecorder.MainActivity.Companion.type
 import org.techtown.samplerecorder.MainActivity.Companion.volumeType
+import java.io.File
 
 class DialogService(private val context: Context) {
 

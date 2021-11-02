@@ -50,4 +50,20 @@
 
     <!-- Audio Play Volume -->
     <string name="volume">Volume</string>
+
+    <!-- Audio List -->
+    <string name="delete">Delete</string>
+    <string name="delete_message">정말로 삭제하시겠습니까?</string>
+
+    <!-- Toast Message -->
+    <string name="toast_delete">파일이 삭제되었습니다.</string>
+    <string name="toast_save">저장 완료</string>
+
+    <!-- activity_main.xml -->
+    <string name="main_record_guide">Record Settings</string>
+    <string name="main_switch_button_guide">Drop</string>
+    <string name="main_play_guide">Record Settings</string>
+
+    <!-- activity_list.xml -->
+    <string name="list_guide">Play List</string>
 </resources>

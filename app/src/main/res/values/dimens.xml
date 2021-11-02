@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- activity_main.xml -->
+    <!-- common -->
+    <dimen name="main_content_margin_big">30dp</dimen>
+    <dimen name="main_content_margin_middle">20dp</dimen>
+    <dimen name="main_content_margin_small">10dp</dimen>
+    <dimen name="main_content_margin_tiny">5dp</dimen>
+    <dimen name="main_card_radius">30dp</dimen>
+    <dimen name="main_card_elevation">10dp</dimen>
+    <dimen name="main_card_record_width">180dp</dimen>
+    <dimen name="main_layout_width">200dp</dimen>
+    <dimen name="main_layout_margin_horizontal">150dp</dimen>
+    <dimen name="main_button_width">150dp</dimen>
+    <dimen name="main_button_text_size">13sp</dimen>
+    <dimen name="main_button_card_radius">10dp</dimen>
+
+    <!-- specific -->
+    <dimen name="main_img_recording">80dp</dimen>
+    <dimen name="main_img_playing">40dp</dimen>
+    <dimen name="main_img_recording_margin_top">130dp</dimen>
+    <dimen name="main_img_playing_margin_top">150dp</dimen>
+    <dimen name="main_waveform_width">300dp</dimen>
+    <dimen name="main_waveform_height">128dp</dimen>
+    <dimen name="main_waveform_chunk_max_height">48dp</dimen>
+    <dimen name="main_waveform_chunk_min_height">2dp</dimen>
+    <dimen name="main_waveform_chunk_space">1dp</dimen>
+    <dimen name="main_waveform_chunk_width">2dp</dimen>
+    <dimen name="main_text_timer_text_size">30sp</dimen>
+
+    <dimen name="main_switch_button_height">30dp</dimen>
+    <dimen name="main_switch_button_padding">8dp</dimen>
+    <dimen name="main_switch_button_stroke_radius">10dp</dimen>
+    <dimen name="main_switch_button_stroke_width">2dp</dimen>
+    <dimen name="main_play_setting_margin_bottom">80dp</dimen>
+
+    <!-- activity_list.xml -->
+    <dimen name="list_card_width">300dp</dimen>
+    <dimen name="list_card_height">400dp</dimen>
+
+    <!-- item.xml -->
+    <dimen name="item_card_radius">10dp</dimen>
+    <dimen name="item_card_elevation">5dp</dimen>
+
+
+</resources>

@@ -5,10 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import org.techtown.samplerecorder.LogUtil
 import org.techtown.samplerecorder.databinding.ItemBinding
 import java.io.File
-import java.util.*
 
 
 class ItemListAdapter(var context: Context, private val fileList: MutableList<File>) : RecyclerView.Adapter<ItemListViewHolder>() {
@@ -17,7 +15,7 @@ class ItemListAdapter(var context: Context, private val fileList: MutableList<Fi
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemListViewHolder {
         val binding = ItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ItemListViewHolder(binding, context, this)
+        return ItemListViewHolder(binding, this)
     }
 
     override fun onBindViewHolder(holder: ItemListViewHolder, position: Int) {
