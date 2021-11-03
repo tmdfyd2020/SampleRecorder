@@ -1,11 +1,13 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.Util
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
+import org.techtown.samplerecorder.MainActivity
 import org.techtown.samplerecorder.MainActivity.Companion.volumeType
+import org.techtown.samplerecorder.R
 
 class VolumeObserver(private val context: Context, handler: Handler?) : ContentObserver(handler) {
 

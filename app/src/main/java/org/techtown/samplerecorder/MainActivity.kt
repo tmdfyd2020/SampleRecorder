@@ -2,6 +2,7 @@ package org.techtown.samplerecorder
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
@@ -15,6 +16,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -25,12 +27,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.room.Room
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.techtown.samplerecorder.Audio.Queue
 import org.techtown.samplerecorder.Audio.RecordService
+import org.techtown.samplerecorder.Audio.RecordService.Companion.CODE_FILE_NAME
 import org.techtown.samplerecorder.Audio.RecordService.Companion.recordWave
 import org.techtown.samplerecorder.Audio.TrackService
 import org.techtown.samplerecorder.Audio.TrackService.Companion.playWave
-import org.techtown.samplerecorder.Audio.Queue
+import org.techtown.samplerecorder.Database.RoomHelper
+import org.techtown.samplerecorder.Database.RoomItem
+import org.techtown.samplerecorder.Database.RoomItemDao
+import org.techtown.samplerecorder.FileNameActivity.Companion.KEY_FILE_NAME
 import org.techtown.samplerecorder.List.ItemListActivity
+import org.techtown.samplerecorder.Util.DialogService
+import org.techtown.samplerecorder.Util.LogUtil
+import org.techtown.samplerecorder.Util.VolumeObserver
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -38,15 +52,18 @@ class MainActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityMainBinding
 
-    private val audioRecord by lazy { RecordService() }
+    private val audioRecord by lazy { RecordService(this, itemList) }
     private val audioTrack by lazy { TrackService() }
     private val waveform by lazy { binding.viewWaveForm }
     private val switchButton by lazy { binding.switchButton }
     private val sharedPreferences by lazy { getSharedPreferences(DATABASE, MODE_PRIVATE) }
     private val editor by lazy { sharedPreferences.edit() }
     private var queue: Queue? = null
+    @Suppress("DEPRECATION")
     private val volumeObserver by lazy { VolumeObserver(this, Handler()) }
     private val dialogService by lazy { DialogService(this) }
+
+    private lateinit var helper: RoomHelper
 
     private var startTime: Long = 0
     private var fileDrop = false
@@ -55,9 +72,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
+        helper = Room.databaseBuilder(this, RoomHelper::class.java, "room_items").build()
+        itemDAO = helper.roomItemDao()
+        syncDatabase()
+
         permissionCheck()
         initUi()
         initState()
+        initListener()
     }
 
     private fun permissionCheck() {
@@ -111,6 +133,29 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    private fun initListener() {
+        var moveX = 0f
+        var moveY = 0f
+        binding.layoutMainLogWindow.setOnTouchListener { view: View, event: MotionEvent ->
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    moveX = view.x - event.rawX
+                    moveY = view.y - event.rawY
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    view.animate()
+                        .x(event.rawX + moveX)
+                        .y(event.rawY + moveY)
+                        .setDuration(0)
+                        .start()
+                }
+            }
+            true
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main_toolbar, menu)
         return true
@@ -119,7 +164,9 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("NonConstantResourceId")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_exit -> dialogService.create("", getString(R.string.exit))
+            R.id.menu_exit -> {
+                dialogService.create(getString(R.string.exit), "")
+            }
             R.id.list_play -> {
                 val intent = Intent(this, ItemListActivity::class.java).apply {
                     putExtra(getString(R.string.rate), playRate)
@@ -144,6 +191,35 @@ class MainActivity : AppCompatActivity() {
             R.id.btn_play_channel -> dialogService.create(getString(R.string.channel), getString(R.string.play))
             R.id.btn_play_sampleRate -> dialogService.create(getString(R.string.rate), getString(R.string.play))
             R.id.btn_play_volume -> dialogService.create(getString(R.string.volume))
+            R.id.iv_main_window -> {
+                with (binding.layoutMainLogWindow) {
+                    if (visibility == View.VISIBLE) {
+                        visibility = View.GONE
+                    } else {
+                        visibility = View.VISIBLE
+                        bringToFront()
+                    }
+                }
+            }
+            R.id.iv_main_minimize_popup -> {
+                with (binding) {
+                    layoutMainLogWindowBody.visibility = View.GONE
+                    ivMainMinimizePopup.visibility = View.GONE
+                    ivMainMaximizePopup.visibility = View.VISIBLE
+                }
+            }
+
+            R.id.iv_main_maximize_popup -> {
+                with (binding) {
+                    layoutMainLogWindowBody.visibility = View.VISIBLE
+                    ivMainMinimizePopup.visibility = View.VISIBLE
+                    ivMainMaximizePopup.visibility = View.GONE
+                }
+            }
+
+            R.id.iv_main_close_popup -> {
+                binding.layoutMainLogWindow.visibility = View.GONE
+            }
         }
     }
 
@@ -160,10 +236,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun startRecording() {
+        LogUtil.d(TAG, "")
         // Waveform
         waveform.recreate()
-        waveform.chunkColor = resources.getColor(R.color.record_red)
+        waveform.chunkColor = resources.getColor(R.color.red_record)
 
         // Record time
         startTime = SystemClock.elapsedRealtime()
@@ -184,6 +262,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun stopRecording() {
+        LogUtil.d(TAG, "")
         // Record time
         recordHandler.removeMessages(0)
 
@@ -214,9 +293,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startPlaying() {
+        LogUtil.d(TAG, "")
         // Waveform
         waveform.recreate()
-        waveform.chunkColor = resources.getColor(R.color.play_blue)
+        waveform.chunkColor = resources.getColor(R.color.blue_play)
 
         // Play time
         startTime = SystemClock.elapsedRealtime()
@@ -235,6 +315,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopPlaying() {
+        LogUtil.d(TAG, "")
         playHandler.removeMessages(0)
 
         with (binding) {
@@ -281,6 +362,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var playHandler: Handler = object : Handler() {
+        @SuppressLint("HandlerLeak")
         override fun handleMessage(msg: Message) {
             if (!emptyQueue) {
                 binding.textTimer.text = time
@@ -321,9 +403,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun insertItem(item: RoomItem) {
+        CoroutineScope(Dispatchers.IO).launch {
+            itemDAO.insert(item)
+            syncDatabase()
+        }
+    }
+
+    private fun syncDatabase() {
+        CoroutineScope(Dispatchers.IO).launch {
+            itemList.clear()
+            itemList.addAll(itemDAO.getList())
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                CODE_FILE_NAME -> {
+                    val name = data?.getStringExtra(KEY_FILE_NAME)
+                    audioRecord.addItem(name!!, this)
+                }
+            }
+        } else {
+            audioRecord.removeFile()
+        }
+    }
+
+    fun writeLogWindow(msg: String) {
+        val totalMsg = "$msg\n${binding.tvMainLogWindow.text}"
+        binding.tvMainLogWindow.text = totalMsg
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         applicationContext.contentResolver.unregisterContentObserver(volumeObserver)
+    }
+
+    init {
+        instance = this
     }
 
     companion object {
@@ -347,5 +467,11 @@ class MainActivity : AppCompatActivity() {
         var playRate = 16000
         var bufferSize = 1024
         var volumeType = AudioManager.STREAM_MUSIC
+
+        var itemList: MutableList<RoomItem> = mutableListOf()
+        lateinit var itemDAO: RoomItemDao
+
+        private var instance: MainActivity? = null
+        fun instance(): MainActivity? { return instance }
     }
 }

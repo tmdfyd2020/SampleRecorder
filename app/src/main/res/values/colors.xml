@@ -5,13 +5,18 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="record_red">#E44034</color>
-    <color name="record_guide">#E43131</color>
-    <color name="play_blue">#4aa8d8</color>
-    <color name="play_guide">#409DE6</color>
-    <color name="list_guide">#4CAF50</color>
-    <color name="exit_yes">#3399FF</color>
-    <color name="exit_no">#F06292</color>
+    <color name="whiteGray">#FFEDEDED</color>
+    <color name="transparentBlack">#AA000000</color>
+
+    <color name="red_record">#E44034</color>
+    <color name="red_record_guide">#E43131</color>
+    <color name="blue_play">#4aa8d8</color>
+    <color name="blue_play_guide">#409DE6</color>
+    <color name="green_list_guide">#AAD8B0</color>
+
+    <color name="blue_exit_yes">#3399FF</color>
+    <color name="red_exit_no">#F06292</color>
 </resources>

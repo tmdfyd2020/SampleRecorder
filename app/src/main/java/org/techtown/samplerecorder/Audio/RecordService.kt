@@ -1,16 +1,18 @@
 package org.techtown.samplerecorder.Audio
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.widget.Toast
+import androidx.core.app.ActivityCompat.startActivityForResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.AppModule.dataToShort
-import org.techtown.samplerecorder.LogUtil
+import org.techtown.samplerecorder.Database.RoomItem
+import org.techtown.samplerecorder.FileNameActivity
+import org.techtown.samplerecorder.MainActivity
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.filePath
 import org.techtown.samplerecorder.MainActivity.Companion.isRecording
@@ -18,20 +20,23 @@ import org.techtown.samplerecorder.MainActivity.Companion.recordChannel
 import org.techtown.samplerecorder.MainActivity.Companion.recordRate
 import org.techtown.samplerecorder.MainActivity.Companion.source
 import org.techtown.samplerecorder.R
+import org.techtown.samplerecorder.Util.AppModule.currentTimeName
+import org.techtown.samplerecorder.Util.AppModule.dataToShort
+import org.techtown.samplerecorder.Util.LogUtil
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class RecordService {
+class RecordService(context: Context, private val itemList: MutableList<RoomItem>) {
     private val TAG = this.javaClass.simpleName
 
+    private var mainActivity = context as MainActivity
     private var audioRecord: AudioRecord? = null
     private var outputStream: FileOutputStream? = null
     private var file: File? = null
+    private lateinit var time: String
     private var job: Job? = null
 
     fun start(queue: Queue, fileDrop: Boolean) {
@@ -74,13 +79,16 @@ class RecordService {
         }
         if (fileDrop) {
             fileSave()
+            val intent = Intent(context, FileNameActivity::class.java)
+            startActivityForResult(context as MainActivity, intent, CODE_FILE_NAME, null)
             LogUtil.i(TAG, "file path : ${file!!.name}")
-            Toast.makeText(context, file!!.name + " ${context!!.getString(R.string.toast_save)}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, file!!.name + " ${context.getString(R.string.toast_save)}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun fileCreate() {
-        file = File(filePath, fileName())
+        time = currentTimeName()
+        file = File(filePath, "$time.pcm")
         outputStream = null
         try { outputStream = FileOutputStream(file) }
         catch (e: FileNotFoundException) { e.printStackTrace() }
@@ -102,14 +110,19 @@ class RecordService {
         }
     }
 
-    @SuppressLint("SimpleDateFormat")
-    private fun fileName(): String {
-        val date = Date(System.currentTimeMillis())
-        val dateFormat = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
-        return dateFormat.format(date) + ".pcm"
+    fun addItem(name: String, context: Context) {
+        val itemName : String = if (name == "") file!!.name else name
+        val channel : String = if (recordChannel == AudioFormat.CHANNEL_IN_MONO) context.getString(R.string.mono) else context.getString(R.string.stereo)
+        val item = RoomItem(itemName, file!!.name, time, channel, recordRate)
+        mainActivity.insertItem(item)
+    }
+
+    fun removeFile() {
+        file!!.delete()
     }
 
     companion object {
         var recordWave = 0
+        const val CODE_FILE_NAME = 1
     }
 }

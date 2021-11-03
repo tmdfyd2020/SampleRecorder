@@ -44,7 +44,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/main_content_margin_small"
                     android:text="@string/list_guide"
-                    android:textColor="@color/list_guide"
+                    android:textColor="@color/green_list_guide"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -54,10 +54,21 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginVertical="@dimen/main_content_margin_small" >
 
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:scrollbarSize="5dp"
+                        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+                        android:scrollbarTrackVertical="@drawable/bg_layout_round_white_15dp" >
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/list_recyclerview"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="ifContentScrolls" />
+
+                    </ScrollView>
 
                 </LinearLayout>
 

@@ -8,24 +8,20 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import org.techtown.samplerecorder.MainActivity.Companion.filePath
+import org.techtown.samplerecorder.MainActivity.Companion.itemList
 import org.techtown.samplerecorder.R
 import org.techtown.samplerecorder.databinding.ActivityListBinding
-import java.io.File
 
 class ItemListActivity : AppCompatActivity() {
 
     private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityListBinding
 
-    private var fileList: MutableList<File> = mutableListOf()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_list)
 
         initUi()
-        initFiles()
         initState()
     }
 
@@ -34,23 +30,13 @@ class ItemListActivity : AppCompatActivity() {
         val toolbar = binding.toolbarList
         setSupportActionBar(toolbar)
         supportActionBar?.title = "목록"
-        BUTTON_PLAY = getDrawable(R.drawable.png_play)!!
-        BUTTON_PAUSE = getDrawable(R.drawable.png_pause)!!
-    }
-
-    private fun initFiles() {
-        val files = File(filePath).listFiles()
-        for (i in files.indices) {
-            if (!files[i].isHidden && files[i].isFile) {
-                fileList.add(files[i])
-            }
-        }
-        fileList.sort() // 우선 이름 순서대로 출력
+        BUTTON_PLAY = getDrawable(R.drawable.ic_list_play)!!
+        BUTTON_PAUSE = getDrawable(R.drawable.ic_list_pause)!!
     }
 
     private fun initState() {
         binding.listRecyclerview.layoutManager = LinearLayoutManager(this)
-        binding.listRecyclerview.adapter = ItemListAdapter(this, fileList)
+        binding.listRecyclerview.adapter = ItemListAdapter(itemList)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

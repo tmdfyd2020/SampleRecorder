@@ -1,6 +1,11 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.Util
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.techtown.samplerecorder.MainActivity
 
 class LogUtil {
 
@@ -10,26 +15,41 @@ class LogUtil {
         fun v(tag: String, msg: String) {
             val message = buildLogMsg(tag, msg)
             Log.v(TAG, message)
+            CoroutineScope(Dispatchers.Main).launch {
+                MainActivity.instance()?.writeLogWindow(message)
+            }
         }
 
         fun i(tag: String, msg: String) {
             val message = buildLogMsg(tag, msg)
             Log.i(TAG, message)
+            CoroutineScope(Dispatchers.Main).launch {
+                MainActivity.instance()?.writeLogWindow(message)
+            }
         }
 
         fun d(tag: String, msg: String) {
             val message = buildLogMsg(tag, msg)
             Log.d(TAG, message)
+            CoroutineScope(Dispatchers.Main).launch {
+                MainActivity.instance()?.writeLogWindow(message)
+            }
         }
 
         fun w(tag: String, msg: String) {
             val message = buildLogMsg(tag, msg)
             Log.w(TAG, message)
+            CoroutineScope(Dispatchers.Main).launch {
+                MainActivity.instance()?.writeLogWindow(message)
+            }
         }
 
         fun e(tag: String, msg: String) {
             val message = buildLogMsg(tag, msg)
             Log.e(TAG, message)
+            CoroutineScope(Dispatchers.Main).launch {
+                MainActivity.instance()?.writeLogWindow(message)
+            }
         }
 
         private val mStringBuffer = StringBuffer()

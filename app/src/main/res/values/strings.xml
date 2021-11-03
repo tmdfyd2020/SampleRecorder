@@ -66,4 +66,16 @@
 
     <!-- activity_list.xml -->
     <string name="list_guide">Play List</string>
+
+    <!-- item.xml -->
+    <string name="item_guide_title">File name</string>
+    <string name="item_guide_time">File time</string>
+    <string name="item_guide_channel">File channel</string>
+    <string name="item_guide_rate">File rate</string>
+
+    <!-- activity_file_name.xml -->
+    <string name="file_name_text_guide">파일 이름 :</string>
+    <string name="file_name_btn_save">저장</string>
+    <string name="file_name_btn_back">취소</string>
+
 </resources>

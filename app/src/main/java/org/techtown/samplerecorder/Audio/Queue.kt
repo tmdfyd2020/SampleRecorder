@@ -14,6 +14,7 @@ class Queue {
         store.offer(data)
     }
 
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     fun dequeue(): ByteArray {
         return queue!!.poll()
     }

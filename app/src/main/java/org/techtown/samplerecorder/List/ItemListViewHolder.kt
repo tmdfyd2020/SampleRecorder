@@ -3,40 +3,52 @@ package org.techtown.samplerecorder.List
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
-import android.text.Html
+import android.text.Html.fromHtml
 import android.view.Gravity
 import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.techtown.samplerecorder.Audio.TrackService
+import org.techtown.samplerecorder.Database.RoomItem
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PAUSE
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
-import org.techtown.samplerecorder.LogUtil
+import org.techtown.samplerecorder.Util.LogUtil
+import org.techtown.samplerecorder.MainActivity.Companion.filePath
+import org.techtown.samplerecorder.MainActivity.Companion.itemDAO
+import org.techtown.samplerecorder.MainActivity.Companion.itemList
 import org.techtown.samplerecorder.R
-import org.techtown.samplerecorder.databinding.ItemBinding
+import org.techtown.samplerecorder.databinding.ItemListBinding
 import java.io.File
 import java.io.RandomAccessFile
 
-class ItemListViewHolder(binding: ItemBinding, private val adapter: ItemListAdapter) : RecyclerView.ViewHolder(binding.root) {
+class ItemListViewHolder(val binding: ItemListBinding, private val adapter: ItemListAdapter) : RecyclerView.ViewHolder(binding.root) {
 
     private val TAG = this.javaClass.simpleName
 
     private val playButton = binding.btnItemPlay
-    private val fileName = binding.itemText
-    val seekBar = binding.seekbarPlayState
+    private val seekBar = binding.seekbarItem
+    val layout = binding.layoutItemBottom
     private val audioTrack by lazy { TrackService() }
 
     private var randomFile: RandomAccessFile? = null
+    private lateinit var currentItem: RoomItem
     private lateinit var currentFile: File
     private var currentPosition: Int? = -1
-    private lateinit var fileList: MutableList<File>
 
-    fun setData(fileList: MutableList<File>, file: File, position: Int) {
-        currentFile = file
+    fun setData(item: RoomItem, position: Int) { // fileList: MutableList<File>, file: File, position: Int
+        currentItem = item
+        currentFile = File(filePath, item.fileName)
+        with (binding) {
+            tvItemTitle.text = item.title
+            tvItemTime.text = item.time
+            tvItemChannel.text = item.channel
+            tvItemRate.text = item.rate.toString()
+        }
         currentPosition = position
-        this.fileList = fileList
-        fileName.text = file.name
     }
 
     private val seekBarListener = object: SeekBar.OnSeekBarChangeListener {
@@ -101,8 +113,8 @@ class ItemListViewHolder(binding: ItemBinding, private val adapter: ItemListAdap
             true -> {  // 재생 버튼 클릭 시
                 FLAG_CAN_PLAY = false
                 playButton.setImageDrawable(BUTTON_PAUSE)
+                layout.visibility = View.VISIBLE
                 with (seekBar) {
-                    visibility = View.VISIBLE
                     max = randomFile!!.length().toInt()
                     min = 0
                 }
@@ -115,30 +127,38 @@ class ItemListViewHolder(binding: ItemBinding, private val adapter: ItemListAdap
         }
     }
 
+    @Suppress("DEPRECATION")
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun removeListDialog(context: Context) {
         val builder = AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar)
         builder.setTitle(context.getString(R.string.delete))
             .setMessage(context.getString(R.string.delete_message))
-            .setIcon(context.getDrawable(R.drawable.png_delete))
-            .setPositiveButton(Html.fromHtml("<font color='#3399FF'>${context.getString(R.string.yes)}</font>")) { _, _ ->
-                currentFile.delete()
-                fileList.removeAt(currentPosition!!)
-                adapter.notifyItemRemoved(currentPosition!!)
-                adapter.notifyItemRangeChanged(currentPosition!!, fileList.size)
+            .setIcon(context.getDrawable(R.drawable.ic_list_dialog_delete))
+            .setPositiveButton(fromHtml("<font color='#3399FF'>${context.getString(R.string.yes)}</font>")) { _, _ ->
+                deleteItem()
                 Toast.makeText(context, context.getString(R.string.toast_delete), Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(
-                Html.fromHtml("<font color='#F06292'>${context.getString(R.string.no)}</font>")
+                fromHtml("<font color='#F06292'>${context.getString(R.string.no)}</font>")
             ) { dialog, _ -> dialog.cancel() }
         val dialog = builder.create()
         dialog.window!!.setGravity(Gravity.CENTER)
         dialog.show()
     }
 
+    private fun deleteItem() {
+        currentFile.delete()
+        itemList.removeAt(currentPosition!!)
+        CoroutineScope(Dispatchers.IO).launch {
+            itemDAO.delete(currentItem)
+        }
+        adapter.notifyItemRemoved(currentPosition!!)
+        adapter.notifyItemRangeChanged(currentPosition!!, itemList.size)
+    }
+
     companion object {
-        var FLAG_PAUSE_STATE = false  // 멈춘 지점부터 시작할 지, 처음부터 시작할 지
-        var FLAG_CAN_PLAY = true      // 재생 버튼 클릭 가능 | 중지 버튼 클릭 가능
-        var PREVIOUS_FILE_POSITION = -1
+        var FLAG_PAUSE_STATE = false     // 멈춘 지점부터 시작할 지, 처음부터 시작할 지
+        var FLAG_CAN_PLAY = true         // 재생 버튼 클릭 가능 | 중지 버튼 클릭 가능
+        var PREVIOUS_FILE_POSITION = -1  // 다른 아이템 클릭 시 layout 숨기기 위한 장치(이전에 클릭한 아이템 position)
     }
 }

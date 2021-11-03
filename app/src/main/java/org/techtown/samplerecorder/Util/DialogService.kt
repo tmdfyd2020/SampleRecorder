@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.Util
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,7 +7,6 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.MediaRecorder
-import android.text.Html
 import android.text.Html.fromHtml
 import android.view.Gravity
 import android.view.View
@@ -15,11 +14,10 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.techtown.samplerecorder.List.ItemListAdapter
+import org.techtown.samplerecorder.MainActivity
 import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.playChannel
 import org.techtown.samplerecorder.MainActivity.Companion.playRate
@@ -28,9 +26,11 @@ import org.techtown.samplerecorder.MainActivity.Companion.recordRate
 import org.techtown.samplerecorder.MainActivity.Companion.source
 import org.techtown.samplerecorder.MainActivity.Companion.type
 import org.techtown.samplerecorder.MainActivity.Companion.volumeType
-import java.io.File
+import org.techtown.samplerecorder.R
 
 class DialogService(private val context: Context) {
+
+    private val TAG = this.javaClass.simpleName
 
     private val mainUi = context as MainActivity
     private val sourceList = arrayOf(
@@ -99,15 +99,20 @@ class DialogService(private val context: Context) {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun exitDialog() {
         val builder = dialogBuilder()
         builder.setTitle(context.getString(R.string.exit))
             .setMessage(context.getString(R.string.exit_message))
-            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_exit_icon))
-            .setPositiveButton(fromHtml("<font color='${context.getColor(R.color.exit_yes)}'>${context.getString(R.string.yes)}</font>")) { _, _ ->
+            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_exit))
+            .setPositiveButton(fromHtml("<font color='${context.getColor(R.color.blue_exit_yes)}'>${context.getString(
+                R.string.yes
+            )}</font>")) { _, _ ->
                 ActivityCompat.finishAffinity(context as MainActivity)
             }
-            .setNegativeButton(fromHtml("<font color='${context.getColor(R.color.exit_no)}'>${context.getString(R.string.no)}</font>")) { dialog, _ ->
+            .setNegativeButton(fromHtml("<font color='${context.getColor(R.color.red_exit_no)}'>${context.getString(
+                R.string.no
+            )}</font>")) { dialog, _ ->
                 dialog.cancel()
             }
         showDialog(builder)
@@ -117,7 +122,7 @@ class DialogService(private val context: Context) {
     private fun sourceDialog() {
         val builder = dialogBuilder()
         builder.setTitle(context.getString(R.string.source))
-            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_source_icon))
+            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_source))
             .setSingleChoiceItems(sourceList, sourceIndex) { _, which ->
                 when (sourceList[which]) {
                     context.getString(R.string.defaults) -> {
@@ -156,32 +161,40 @@ class DialogService(private val context: Context) {
         builder.setTitle(context.getString(R.string.channel))
         when (mode) {
             context.getString(R.string.record) -> {
-                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_record_channel))
+                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_record_channel))
                     .setSingleChoiceItems(channelList, recordChannelIndex) { _, which ->
                         when (channelList[which]) {
                             context.getString(R.string.mono) -> {
                                 recordChannel = AudioFormat.CHANNEL_IN_MONO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(R.string.mono), mode)
+                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                    R.string.mono
+                                ), mode)
                             }
                             context.getString(R.string.stereo) -> {
                                 recordChannel = AudioFormat.CHANNEL_IN_STEREO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(R.string.stereo), mode)
+                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                    R.string.stereo
+                                ), mode)
                             }
                         }
                         recordChannelIndex = which
                     }
             }
             context.getString(R.string.play) -> {
-                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_play_channel))
+                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_play_channel))
                     .setSingleChoiceItems(channelList, playChannelIndex) { _, which ->
                         when (channelList[which]) {
                             context.getString(R.string.mono) -> {
                                 playChannel = AudioFormat.CHANNEL_OUT_MONO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(R.string.mono), mode)
+                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                    R.string.mono
+                                ), mode)
                             }
                             context.getString(R.string.stereo) -> {
                                 playChannel = AudioFormat.CHANNEL_OUT_STEREO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(R.string.stereo), mode)
+                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                    R.string.stereo
+                                ), mode)
                             }
                         }
                         playChannelIndex = which
@@ -199,56 +212,76 @@ class DialogService(private val context: Context) {
         builder.setTitle(context.getString(R.string.rate))
         when (mode) {
             context.getString(R.string.record) -> {
-                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_record_samplerate))
+                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_record_samplerate))
                     .setSingleChoiceItems(rateList, recordRateIndex) { _, which ->
                         when (rateList[which]) {
                             context.getString(R.string.rate_8000) -> {
                                 recordRate = SAMPLE_RATE_8000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_8000), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_8000
+                                ), mode)
                             }
                             context.getString(R.string.rate_11025) -> {
                                 recordRate = SAMPLE_RATE_11025
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_11025), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_11025
+                                ), mode)
                             }
                             context.getString(R.string.rate_16000) -> {
                                 recordRate = SAMPLE_RATE_16000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_16000), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_16000
+                                ), mode)
                             }
                             context.getString(R.string.rate_22050) -> {
                                 recordRate = SAMPLE_RATE_22050
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_22050), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_22050
+                                ), mode)
                             }
                             context.getString(R.string.rate_44100) -> {
                                 recordRate = SAMPLE_RATE_44100
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_44100), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_44100
+                                ), mode)
                             }
                         }
                         recordRateIndex = which
                     }
             }
             context.getString(R.string.play) -> {
-                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_play_samplerate))
+                builder.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_play_samplerate))
                     .setSingleChoiceItems(rateList, playRateIndex) { _, which ->
                         when (rateList[which]) {
                             context.getString(R.string.rate_8000) -> {
                                 playRate = SAMPLE_RATE_8000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_8000), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_8000
+                                ), mode)
                             }
                             context.getString(R.string.rate_11025) -> {
                                 playRate = SAMPLE_RATE_11025
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_11025), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_11025
+                                ), mode)
                             }
                             context.getString(R.string.rate_16000) -> {
                                 playRate = SAMPLE_RATE_16000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_16000), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_16000
+                                ), mode)
                             }
                             context.getString(R.string.rate_22050) -> {
                                 playRate = SAMPLE_RATE_22050
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_22050), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_22050
+                                ), mode)
                             }
                             context.getString(R.string.rate_44100) -> {
                                 playRate = SAMPLE_RATE_44100
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(R.string.rate_44100), mode)
+                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                    R.string.rate_44100
+                                ), mode)
                             }
                         }
                         playRateIndex = which
@@ -262,20 +295,26 @@ class DialogService(private val context: Context) {
     private fun bufferSizeDialog() {
         val builder = dialogBuilder()
         builder.setTitle(context.getString(R.string.buffer_size))
-            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_buffersize))
+            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_buffersize))
             .setSingleChoiceItems(bufferList, bufferSizeIndex) { _, which ->
                 when (bufferList[which]) {
                     context.getString(R.string.buffer_size_512) -> {
                         bufferSize = BUFFER_SIZE_512
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(R.string.buffer_size_512))
+                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                            R.string.buffer_size_512
+                        ))
                     }
                     context.getString(R.string.buffer_size_1024) -> {
                         bufferSize = BUFFER_SIZE_1024
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(R.string.buffer_size_1024))
+                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                            R.string.buffer_size_1024
+                        ))
                     }
                     context.getString(R.string.buffer_size_2048) -> {
                         bufferSize = BUFFER_SIZE_2048
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(R.string.buffer_size_2048))
+                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                            R.string.buffer_size_2048
+                        ))
                     }
                 }
                 bufferSizeIndex = which
@@ -287,7 +326,7 @@ class DialogService(private val context: Context) {
     private fun typeDialog() {
         val builder = dialogBuilder()
         builder.setTitle(context.getString(R.string.type))
-            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_baseline_type))
+            .setIcon(ContextCompat.getDrawable(context, R.drawable.ic_type))
             .setSingleChoiceItems(typeList, typeIndex) { _, which ->
                 when (typeList[which]) {
                     context.getString(R.string.ring) -> {
@@ -323,7 +362,7 @@ class DialogService(private val context: Context) {
     }
 
     private fun volumeDialog() {
-        val viewSeekbar = mainUi.layoutInflater.inflate(R.layout.seekbar, null)
+        val viewSeekbar = mainUi.layoutInflater.inflate(R.layout.seekbar_volume, null)
         val seekBar = viewSeekbar.findViewById<View>(R.id.seekbar_volume) as SeekBar
         val textView = viewSeekbar.findViewById<View>(R.id.text_seekbar) as TextView
         val imageView = viewSeekbar.findViewById<View>(R.id.img_seekbar) as ImageView
@@ -354,16 +393,16 @@ class DialogService(private val context: Context) {
     private fun seekBarUi(volume: Int, volumeText: TextView, image: ImageView) {
         when {
             volume >= 13 -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.record_red))
-                image.setImageResource(R.drawable.png_volume_loud)
+                volumeText.setTextColor(mainUi.resources.getColor(R.color.red_record))
+                image.setImageResource(R.drawable.ic_volume_loud)
             }
             volume in 10..12 -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.play_blue))
-                image.setImageResource(R.drawable.png_volume_loud)
+                volumeText.setTextColor(mainUi.resources.getColor(R.color.blue_play))
+                image.setImageResource(R.drawable.ic_volume_loud)
             }
             else -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.play_blue))
-                image.setImageResource(R.drawable.png_volume_small)
+                volumeText.setTextColor(mainUi.resources.getColor(R.color.blue_play))
+                image.setImageResource(R.drawable.ic_volume_small)
             }
         }
         volumeText.text = volume.toString()
