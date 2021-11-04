@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityMainBinding
 
-    private val audioRecord by lazy { RecordService(this, itemList) }
+    private val audioRecord by lazy { RecordService(this) }
     private val audioTrack by lazy { TrackService() }
     private val waveform by lazy { binding.viewWaveForm }
     private val switchButton by lazy { binding.switchButton }

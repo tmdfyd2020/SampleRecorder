@@ -29,7 +29,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class RecordService(context: Context, private val itemList: MutableList<RoomItem>) {
+class RecordService(context: Context) {
     private val TAG = this.javaClass.simpleName
 
     private var mainActivity = context as MainActivity
