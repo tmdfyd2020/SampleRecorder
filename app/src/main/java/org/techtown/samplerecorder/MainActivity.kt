@@ -1,10 +1,17 @@
 package org.techtown.samplerecorder
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Point
+import android.graphics.Rect
+import android.graphics.RectF
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -14,12 +21,10 @@ import android.os.Handler
 import android.os.Message
 import android.os.SystemClock
 import android.provider.Settings
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.Button
 import android.widget.ImageView
@@ -62,6 +67,15 @@ class MainActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     private val volumeObserver by lazy { VolumeObserver(this, Handler()) }
     private val dialogService by lazy { DialogService(this) }
+
+    private val container by lazy { binding.containerMain }
+    private val button by lazy { binding.ivMainStartWindow }
+    private val logWindow by lazy { binding.layoutMainLogWindow }
+    private var logWindowX: Float = 0f
+    private var logWindowY: Float = 0f
+    private var shortAnimationDuration: Int = 0
+    private var currentAnimator: Animator? = null
+    private var zoomState: Boolean = false
 
     private lateinit var helper: RoomHelper
 
@@ -131,6 +145,29 @@ class MainActivity : AppCompatActivity() {
             true,
             volumeObserver
         )
+
+        // Log window 첫 시작 위치 설정
+        with (binding.containerMain) {
+            viewTreeObserver.addOnGlobalLayoutListener(object :
+                ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    val containerWidth = width
+                    with (binding.layoutMainLogWindow) {
+                        viewTreeObserver.addOnGlobalLayoutListener(object :
+                            ViewTreeObserver.OnGlobalLayoutListener {
+                            override fun onGlobalLayout() {
+                                logWindowX = ((containerWidth - width) / 2).toFloat()
+                                logWindowY = (height / 2).toFloat()
+                                viewTreeObserver.removeOnGlobalLayoutListener(this)
+                            }
+                        })
+                    }
+                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                }
+            })
+        }
+
+        shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -191,15 +228,8 @@ class MainActivity : AppCompatActivity() {
             R.id.btn_play_channel -> dialogService.create(getString(R.string.channel), getString(R.string.play))
             R.id.btn_play_sampleRate -> dialogService.create(getString(R.string.rate), getString(R.string.play))
             R.id.btn_play_volume -> dialogService.create(getString(R.string.volume))
-            R.id.iv_main_window -> {
-                with (binding.layoutMainLogWindow) {
-                    if (visibility == View.VISIBLE) {
-                        visibility = View.GONE
-                    } else {
-                        visibility = View.VISIBLE
-                        bringToFront()
-                    }
-                }
+            R.id.iv_main_start_window -> {
+                zoomAnimation(view)
             }
             R.id.iv_main_minimize_popup -> {
                 with (binding) {
@@ -218,7 +248,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.iv_main_close_popup -> {
-                binding.layoutMainLogWindow.visibility = View.GONE
+                zoomAnimation(button)
             }
         }
     }
@@ -435,6 +465,87 @@ class MainActivity : AppCompatActivity() {
     fun writeLogWindow(msg: String) {
         val totalMsg = "$msg\n${binding.tvMainLogWindow.text}"
         binding.tvMainLogWindow.text = totalMsg
+    }
+
+    /**
+     * View Expansion and Shrink animation.
+     * Start from button x, y to current window's x, y
+     * Up to window's original scale
+     * @param button start animation view
+     */
+    private fun zoomAnimation(button: View) {
+        currentAnimator?.cancel()
+
+        val startBoundsInt = Rect()
+        val finalBoundsInt = Rect()
+        val globalOffset = Point()
+
+        button.getGlobalVisibleRect(startBoundsInt)
+        container.getGlobalVisibleRect(finalBoundsInt, globalOffset)
+        startBoundsInt.offset(-globalOffset.x, -globalOffset.y)
+        finalBoundsInt.offset(-globalOffset.x, -globalOffset.y)
+
+        val startBounds = RectF(startBoundsInt)
+        val finalBounds = RectF(finalBoundsInt)
+        val startScale = startBounds.height() / finalBounds.height()
+
+        logWindow.pivotX = 0f
+        logWindow.pivotY = 0f
+
+        when (zoomState) {
+            false -> {
+                LogUtil.i(TAG, "Animation Open")
+                with (logWindow) {
+                    visibility = View.VISIBLE
+                    bringToFront()
+                }
+                currentAnimator = AnimatorSet().apply {
+                    play(ObjectAnimator.ofFloat(logWindow, View.X, button.x, logWindowX)).apply {  // X 시작 위치, 마지막 위치
+                        with(ObjectAnimator.ofFloat(logWindow, View.Y, button.y, logWindowY))  // Y 시작 위치, 마지막 위치
+                        with(ObjectAnimator.ofFloat(logWindow, View.SCALE_X, startScale, 1f))  // X 크기
+                        with(ObjectAnimator.ofFloat(logWindow, View.SCALE_Y, startScale, 1f))  // Y 크기
+                    }
+                    duration = shortAnimationDuration.toLong()
+                    interpolator = DecelerateInterpolator()
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            currentAnimator = null
+                        }
+
+                        override fun onAnimationCancel(animation: Animator) {
+                            currentAnimator = null
+                        }
+                    })
+                    start()
+                }
+                zoomState = true
+            }
+            true -> {
+                LogUtil.i(TAG, "Animation Close")
+                currentAnimator = AnimatorSet().apply {
+                    play(ObjectAnimator.ofFloat(logWindow, View.X, button.x)).apply {
+                        with(ObjectAnimator.ofFloat(logWindow, View.Y, button.y))
+                        with(ObjectAnimator.ofFloat(logWindow, View.SCALE_X, startScale))
+                        with(ObjectAnimator.ofFloat(logWindow, View.SCALE_Y, startScale))
+                    }
+                    duration = shortAnimationDuration.toLong()
+                    interpolator = DecelerateInterpolator()
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            logWindow.visibility = View.GONE
+                            currentAnimator = null
+                        }
+
+                        override fun onAnimationCancel(animation: Animator) {
+                            logWindow.visibility = View.GONE
+                            currentAnimator = null
+                        }
+                    })
+                    start()
+                }
+                zoomState = false
+            }
+        }
     }
 
     override fun onDestroy() {
