@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <solid android:color="#ffffff" />
-
+    <solid android:color="@color/white" />
     <stroke
-        android:width="1dp"
-        android:color="#E43131" />
-
+        android:width="@dimen/drawable_btn_setting_width"
+        android:color="@color/red_record_guide" />
     <corners
-        android:topLeftRadius="10dp"
-        android:topRightRadius="10dp"
-        android:bottomLeftRadius="10dp"
-        android:bottomRightRadius="10dp"  />
-
+        android:topLeftRadius="@dimen/drawable_btn_radius"
+        android:topRightRadius="@dimen/drawable_btn_radius"
+        android:bottomLeftRadius="@dimen/drawable_btn_radius"
+        android:bottomRightRadius="@dimen/drawable_btn_radius"  />
 </shape>
