@@ -30,8 +30,6 @@ import org.techtown.samplerecorder.R
 
 class DialogService(private val context: Context) {
 
-    private val TAG = this.javaClass.simpleName
-
     private val mainUi = context as MainActivity
     private val sourceList = arrayOf(
         context.getString(R.string.defaults),
@@ -422,6 +420,7 @@ class DialogService(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "DialogService"
         const val SAMPLE_RATE_8000 = 8000
         const val SAMPLE_RATE_11025 = 11025
         const val SAMPLE_RATE_16000 = 16000

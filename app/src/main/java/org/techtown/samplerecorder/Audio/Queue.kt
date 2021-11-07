@@ -4,8 +4,6 @@ import java.util.*
 import java.util.Queue
 
 class Queue {
-    private val TAG = this.javaClass.simpleName
-
     var queue: Queue<ByteArray>? = null
     var store: Queue<ByteArray>
 
@@ -29,5 +27,9 @@ class Queue {
     init {
         queue = LinkedList()
         store = LinkedList()
+    }
+
+    companion object {
+        private const val TAG = "Queue"
     }
 }

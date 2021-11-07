@@ -22,8 +22,6 @@ import org.techtown.samplerecorder.MainActivity.Companion.type
 import java.io.RandomAccessFile
 
 class TrackService {
-    private val TAG = this.javaClass.simpleName
-
     private var audioTrack: AudioTrack? = null
     private var job: Job? = null
     var pausePoint: Long? = 0
@@ -109,6 +107,7 @@ class TrackService {
     }
 
     companion object {
+        private const val TAG = "TrackService"
         var playWave = 0
     }
 }

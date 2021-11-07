@@ -39,6 +39,7 @@ class FileNameActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "FileNameActivity"
         const val KEY_FILE_NAME = "name"
     }
 }

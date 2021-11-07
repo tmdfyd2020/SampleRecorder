@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item >
+    <item>
         <shape android:shape="rectangle">
-            <corners android:radius="10dp"/>
-            <!--<solid android:color="#E8BB78"/>-->
+            <corners android:radius="@dimen/drawable_seekbar_radius" />
             <gradient
-                android:startColor="#F4F6F4"
-                android:endColor="#9E9F9E" />
-
-            <stroke android:color="#ffffff" android:width="5dp"/>
+                android:startColor="@color/scroll_start_gradient"
+                android:endColor="@color/scroll_end_gradient" />
+            <stroke android:color="@color/white"
+                android:width="@dimen/drawable_seekbar_stroke_width" />
         </shape>
     </item>
 </selector>

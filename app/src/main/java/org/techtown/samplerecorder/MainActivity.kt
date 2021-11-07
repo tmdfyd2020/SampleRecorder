@@ -54,7 +54,6 @@ import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityMainBinding
 
     private val audioRecord by lazy { RecordService(this) }
@@ -558,6 +557,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "MainActivity"
         private const val PERMISSION_CODE = 1
         private const val MESSAGE_RECORD = 1
         private const val MESSAGE_PLAY = 2

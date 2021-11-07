@@ -20,4 +20,7 @@
 
     <color name="blue_exit_yes">#3399FF</color>
     <color name="red_exit_no">#F06292</color>
+
+    <color name="scroll_start_gradient">#F4F6F4</color>
+    <color name="scroll_end_gradient">#9E9F9E</color>
 </resources>

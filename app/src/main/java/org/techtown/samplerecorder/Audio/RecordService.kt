@@ -30,8 +30,6 @@ import java.io.IOException
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class RecordService(context: Context) {
-    private val TAG = this.javaClass.simpleName
-
     private var mainActivity = context as MainActivity
     private var audioRecord: AudioRecord? = null
     private var outputStream: FileOutputStream? = null
@@ -122,6 +120,7 @@ class RecordService(context: Context) {
     }
 
     companion object {
+        private const val TAG = "RecordService"
         var recordWave = 0
         const val CODE_FILE_NAME = 1
     }

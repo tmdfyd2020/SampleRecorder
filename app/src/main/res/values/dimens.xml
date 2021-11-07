@@ -73,5 +73,9 @@
     <dimen name="drawable_btn_width">3dp</dimen>
     <dimen name="drawable_btn_setting_width">1dp</dimen>
     <dimen name="drawable_btn_radius">10dp</dimen>
+    <dimen name="drawable_scroll_radius">15dp</dimen>
+    <dimen name="drawable_scroll_stroke_width">1dp</dimen>
+    <dimen name="drawable_seekbar_radius">10dp</dimen>
+    <dimen name="drawable_seekbar_stroke_width">5dp</dimen>
 
 </resources>

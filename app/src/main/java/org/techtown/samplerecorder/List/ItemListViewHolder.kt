@@ -157,6 +157,7 @@ class ItemListViewHolder(val binding: ItemListBinding, private val adapter: Item
     }
 
     companion object {
+        private const val TAG = "ItemListViewHolder"
         var FLAG_PAUSE_STATE = false     // 멈춘 지점부터 시작할 지, 처음부터 시작할 지
         var FLAG_CAN_PLAY = true         // 재생 버튼 클릭 가능 | 중지 버튼 클릭 가능
         var PREVIOUS_FILE_POSITION = -1  // 다른 아이템 클릭 시 layout 숨기기 위한 장치(이전에 클릭한 아이템 position)

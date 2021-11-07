@@ -14,7 +14,6 @@ import org.techtown.samplerecorder.databinding.ActivityListBinding
 
 class ItemListActivity : AppCompatActivity() {
 
-    private val TAG = this.javaClass.simpleName
     private lateinit var binding: ActivityListBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +51,7 @@ class ItemListActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "ItemListActivity"
         lateinit var BUTTON_PLAY: Drawable
         lateinit var BUTTON_PAUSE: Drawable
     }

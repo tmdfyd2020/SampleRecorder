@@ -2,12 +2,12 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item >
         <shape android:shape="rectangle">
-            <corners android:radius="10dp"/>
+            <corners android:radius="@dimen/drawable_seekbar_radius"/>
             <gradient
                 android:startColor="@color/whiteGray"
                 android:endColor="@color/blue_play_guide" />
-
-            <stroke android:color="#fff" android:width="5dp"/>
+            <stroke android:color="@color/white"
+                android:width="@dimen/drawable_seekbar_stroke_width"/>
         </shape>
     </item>
 </selector>

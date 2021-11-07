@@ -12,8 +12,6 @@ import org.techtown.samplerecorder.databinding.ItemListBinding
 
 class ItemListAdapter(private val itemList: MutableList<RoomItem>) : RecyclerView.Adapter<ItemListViewHolder>() {
 
-    private val TAG = this.javaClass.simpleName
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemListViewHolder {
         val binding = ItemListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ItemListViewHolder(binding, this)
@@ -30,5 +28,9 @@ class ItemListAdapter(private val itemList: MutableList<RoomItem>) : RecyclerVie
     override fun onBindViewHolder(holder: ItemListViewHolder, position: Int, payloads: List<Any?>) {
         super.onBindViewHolder(holder, position, payloads)
         holder.layout.visibility = View.GONE
+    }
+
+    companion object {
+        private const val TAG = "ItemListAdapter"
     }
 }
