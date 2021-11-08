@@ -17,20 +17,24 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import org.techtown.samplerecorder.HomeFragment
+import org.techtown.samplerecorder.HomeFragment.Companion._binding
+import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
+import org.techtown.samplerecorder.HomeFragment.Companion.playChannel
+import org.techtown.samplerecorder.HomeFragment.Companion.playRate
+import org.techtown.samplerecorder.HomeFragment.Companion.recordChannel
+import org.techtown.samplerecorder.HomeFragment.Companion.recordRate
+import org.techtown.samplerecorder.HomeFragment.Companion.source
+import org.techtown.samplerecorder.HomeFragment.Companion.type
+import org.techtown.samplerecorder.HomeFragment.Companion.volumeType
 import org.techtown.samplerecorder.MainActivity
-import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
-import org.techtown.samplerecorder.MainActivity.Companion.playChannel
-import org.techtown.samplerecorder.MainActivity.Companion.playRate
-import org.techtown.samplerecorder.MainActivity.Companion.recordChannel
-import org.techtown.samplerecorder.MainActivity.Companion.recordRate
-import org.techtown.samplerecorder.MainActivity.Companion.source
-import org.techtown.samplerecorder.MainActivity.Companion.type
-import org.techtown.samplerecorder.MainActivity.Companion.volumeType
 import org.techtown.samplerecorder.R
+import org.techtown.samplerecorder.databinding.FragmentHomeBinding
 
-class DialogService(private val context: Context) {
+class DialogService private constructor(private val context: Context) {
 
-    private val mainUi = context as MainActivity
+    private val mainFragment = HomeFragment.instance()
+    private val mainActivity = context as MainActivity
     private val sourceList = arrayOf(
         context.getString(R.string.defaults),
         context.getString(R.string.mic),
@@ -77,6 +81,7 @@ class DialogService(private val context: Context) {
                 exitDialog()
             }
             context.getString(R.string.source) -> {
+                // TODO HomeFragment binding = null 되는 최초 시점
                 sourceDialog()
             }
             context.getString(R.string.channel) -> {
@@ -125,27 +130,27 @@ class DialogService(private val context: Context) {
                 when (sourceList[which]) {
                     context.getString(R.string.defaults) -> {
                         source = MediaRecorder.AudioSource.DEFAULT
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.defaults))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.defaults))
                     }
                     context.getString(R.string.mic) -> {
                         source = MediaRecorder.AudioSource.MIC
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.mic))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.mic))
                     }
                     context.getString(R.string.voice_communication) -> {
                         source = MediaRecorder.AudioSource.VOICE_COMMUNICATION
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_communication))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_communication))
                     }
                     context.getString(R.string.voice_performance) -> {
                         source = MediaRecorder.AudioSource.VOICE_PERFORMANCE
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_performance))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_performance))
                     }
                     context.getString(R.string.voice_recognition) -> {
                         source = MediaRecorder.AudioSource.VOICE_RECOGNITION
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_recognition))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.voice_recognition))
                     }
                     context.getString(R.string.unprocessed) -> {
                         source = MediaRecorder.AudioSource.UNPROCESSED
-                        mainUi.changeTextUi(context.getString(R.string.source), context.getString(R.string.unprocessed))
+                        mainFragment.changeTextUi(context.getString(R.string.source), context.getString(R.string.unprocessed))
                     }
                 }
                 sourceIndex = which
@@ -164,13 +169,13 @@ class DialogService(private val context: Context) {
                         when (channelList[which]) {
                             context.getString(R.string.mono) -> {
                                 recordChannel = AudioFormat.CHANNEL_IN_MONO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.channel), context.getString(
                                     R.string.mono
                                 ), mode)
                             }
                             context.getString(R.string.stereo) -> {
                                 recordChannel = AudioFormat.CHANNEL_IN_STEREO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.channel), context.getString(
                                     R.string.stereo
                                 ), mode)
                             }
@@ -184,13 +189,13 @@ class DialogService(private val context: Context) {
                         when (channelList[which]) {
                             context.getString(R.string.mono) -> {
                                 playChannel = AudioFormat.CHANNEL_OUT_MONO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.channel), context.getString(
                                     R.string.mono
                                 ), mode)
                             }
                             context.getString(R.string.stereo) -> {
                                 playChannel = AudioFormat.CHANNEL_OUT_STEREO
-                                mainUi.changeTextUi(context.getString(R.string.channel), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.channel), context.getString(
                                     R.string.stereo
                                 ), mode)
                             }
@@ -215,31 +220,31 @@ class DialogService(private val context: Context) {
                         when (rateList[which]) {
                             context.getString(R.string.rate_8000) -> {
                                 recordRate = SAMPLE_RATE_8000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_8000
                                 ), mode)
                             }
                             context.getString(R.string.rate_11025) -> {
                                 recordRate = SAMPLE_RATE_11025
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_11025
                                 ), mode)
                             }
                             context.getString(R.string.rate_16000) -> {
                                 recordRate = SAMPLE_RATE_16000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_16000
                                 ), mode)
                             }
                             context.getString(R.string.rate_22050) -> {
                                 recordRate = SAMPLE_RATE_22050
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_22050
                                 ), mode)
                             }
                             context.getString(R.string.rate_44100) -> {
                                 recordRate = SAMPLE_RATE_44100
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_44100
                                 ), mode)
                             }
@@ -253,31 +258,31 @@ class DialogService(private val context: Context) {
                         when (rateList[which]) {
                             context.getString(R.string.rate_8000) -> {
                                 playRate = SAMPLE_RATE_8000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_8000
                                 ), mode)
                             }
                             context.getString(R.string.rate_11025) -> {
                                 playRate = SAMPLE_RATE_11025
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_11025
                                 ), mode)
                             }
                             context.getString(R.string.rate_16000) -> {
                                 playRate = SAMPLE_RATE_16000
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_16000
                                 ), mode)
                             }
                             context.getString(R.string.rate_22050) -> {
                                 playRate = SAMPLE_RATE_22050
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_22050
                                 ), mode)
                             }
                             context.getString(R.string.rate_44100) -> {
                                 playRate = SAMPLE_RATE_44100
-                                mainUi.changeTextUi(context.getString(R.string.rate), context.getString(
+                                mainFragment.changeTextUi(context.getString(R.string.rate), context.getString(
                                     R.string.rate_44100
                                 ), mode)
                             }
@@ -298,19 +303,19 @@ class DialogService(private val context: Context) {
                 when (bufferList[which]) {
                     context.getString(R.string.buffer_size_512) -> {
                         bufferSize = BUFFER_SIZE_512
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                        mainFragment.changeTextUi(context.getString(R.string.buffer_size), context.getString(
                             R.string.buffer_size_512
                         ))
                     }
                     context.getString(R.string.buffer_size_1024) -> {
                         bufferSize = BUFFER_SIZE_1024
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                        mainFragment.changeTextUi(context.getString(R.string.buffer_size), context.getString(
                             R.string.buffer_size_1024
                         ))
                     }
                     context.getString(R.string.buffer_size_2048) -> {
                         bufferSize = BUFFER_SIZE_2048
-                        mainUi.changeTextUi(context.getString(R.string.buffer_size), context.getString(
+                        mainFragment.changeTextUi(context.getString(R.string.buffer_size), context.getString(
                             R.string.buffer_size_2048
                         ))
                     }
@@ -330,37 +335,37 @@ class DialogService(private val context: Context) {
                     context.getString(R.string.ring) -> {
                         type = AudioAttributes.USAGE_NOTIFICATION_RINGTONE
                         volumeType = AudioManager.STREAM_RING
-                        mainUi.changeTextUi(context.getString(R.string.type), context.getString(R.string.ring))
+                        mainFragment.changeTextUi(context.getString(R.string.type), context.getString(R.string.ring))
                     }
                     context.getString(R.string.media) -> {
                         type = AudioAttributes.USAGE_MEDIA
                         volumeType = AudioManager.STREAM_MUSIC
-                        mainUi.changeTextUi(context.getString(R.string.type), context.getString(R.string.media))
+                        mainFragment.changeTextUi(context.getString(R.string.type), context.getString(R.string.media))
                     }
                     context.getString(R.string.alarm) -> {
                         type = AudioAttributes.USAGE_ALARM
                         volumeType = AudioManager.STREAM_ALARM
-                        mainUi.changeTextUi(context.getString(R.string.type), context.getString(R.string.alarm))
+                        mainFragment.changeTextUi(context.getString(R.string.type), context.getString(R.string.alarm))
                     }
                     context.getString(R.string.notification) -> {
                         type = AudioAttributes.USAGE_NOTIFICATION
                         volumeType = AudioManager.STREAM_NOTIFICATION
-                        mainUi.changeTextUi(context.getString(R.string.type), context.getString(R.string.notification))
+                        mainFragment.changeTextUi(context.getString(R.string.type), context.getString(R.string.notification))
                     }
                     context.getString(R.string.system) -> {
                         type = AudioAttributes.USAGE_ASSISTANCE_SONIFICATION
                         volumeType = AudioManager.STREAM_SYSTEM
-                        mainUi.changeTextUi(context.getString(R.string.type), context.getString(R.string.system))
+                        mainFragment.changeTextUi(context.getString(R.string.type), context.getString(R.string.system))
                     }
                 }
                 typeIndex = which
-                mainUi.volumeControlStream = volumeType
+                mainActivity.volumeControlStream = volumeType
             }
         showDialog(builder)
     }
 
     private fun volumeDialog() {
-        val viewSeekbar = mainUi.layoutInflater.inflate(R.layout.seekbar_volume, null)
+        val viewSeekbar = mainActivity.layoutInflater.inflate(R.layout.seekbar_volume, null)
         val seekBar = viewSeekbar.findViewById<View>(R.id.seekbar_volume) as SeekBar
         val textView = viewSeekbar.findViewById<View>(R.id.text_seekbar) as TextView
         val imageView = viewSeekbar.findViewById<View>(R.id.img_seekbar) as ImageView
@@ -372,7 +377,7 @@ class DialogService(private val context: Context) {
     }
 
     private fun seekbarSetting(seekBar: SeekBar, volumeText: TextView, image: ImageView) {
-        val audioManager = mainUi.getSystemService(AUDIO_SERVICE) as AudioManager
+        val audioManager = mainActivity.getSystemService(AUDIO_SERVICE) as AudioManager
         val currentVolume = audioManager.getStreamVolume(volumeType)
         seekBar.min = 1
         seekBar.max = audioManager.getStreamMaxVolume(volumeType)
@@ -391,15 +396,15 @@ class DialogService(private val context: Context) {
     private fun seekBarUi(volume: Int, volumeText: TextView, image: ImageView) {
         when {
             volume >= 13 -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.red_record))
+                volumeText.setTextColor(mainActivity.resources.getColor(R.color.red_record))
                 image.setImageResource(R.drawable.ic_volume_loud)
             }
             volume in 10..12 -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.blue_play))
+                volumeText.setTextColor(mainActivity.resources.getColor(R.color.blue_play))
                 image.setImageResource(R.drawable.ic_volume_loud)
             }
             else -> {
-                volumeText.setTextColor(mainUi.resources.getColor(R.color.blue_play))
+                volumeText.setTextColor(mainActivity.resources.getColor(R.color.blue_play))
                 image.setImageResource(R.drawable.ic_volume_small)
             }
         }
@@ -429,5 +434,7 @@ class DialogService(private val context: Context) {
         const val BUFFER_SIZE_512 = 512
         const val BUFFER_SIZE_1024 = 1024
         const val BUFFER_SIZE_2048 = 2048
+
+        fun dialog(context: Context) = DialogService(context)
     }
 }

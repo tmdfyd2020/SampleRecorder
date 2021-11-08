@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".HomeFragment" >
+    xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container_main"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white" >
+        android:background="@color/white"
+        tools:context=".HomeFragment">
 
         <ImageView
             android:id="@+id/img_recording"
@@ -85,7 +85,7 @@
                 app:cardElevation="@dimen/main_card_elevation" >
 
                 <LinearLayout
-                    android:id="@+id/layout_btn_record_settings"
+                    android:id="@+id/container_record_settings"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -218,6 +218,7 @@
                 app:cardElevation="@dimen/main_card_elevation" >
 
                 <LinearLayout
+                    android:id="@+id/container_play_settings"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

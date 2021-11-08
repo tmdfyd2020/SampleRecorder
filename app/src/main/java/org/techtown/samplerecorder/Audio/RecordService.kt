@@ -12,13 +12,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.techtown.samplerecorder.Database.RoomItem
 import org.techtown.samplerecorder.FileNameActivity
+import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
+import org.techtown.samplerecorder.HomeFragment.Companion.isRecording
+import org.techtown.samplerecorder.HomeFragment.Companion.recordChannel
+import org.techtown.samplerecorder.HomeFragment.Companion.recordRate
+import org.techtown.samplerecorder.HomeFragment.Companion.source
 import org.techtown.samplerecorder.MainActivity
-import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
 import org.techtown.samplerecorder.MainActivity.Companion.filePath
-import org.techtown.samplerecorder.MainActivity.Companion.isRecording
-import org.techtown.samplerecorder.MainActivity.Companion.recordChannel
-import org.techtown.samplerecorder.MainActivity.Companion.recordRate
-import org.techtown.samplerecorder.MainActivity.Companion.source
 import org.techtown.samplerecorder.R
 import org.techtown.samplerecorder.Util.AppModule.currentTimeName
 import org.techtown.samplerecorder.Util.AppModule.dataToShort
@@ -123,5 +123,6 @@ class RecordService(context: Context) {
         private const val TAG = "RecordService"
         var recordWave = 0
         const val CODE_FILE_NAME = 1
+        fun record(context: Context) = RecordService(context)
     }
 }

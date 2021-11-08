@@ -21,4 +21,7 @@ class ListFragment : Fragment() {
         return binding.root
     }
 
+    companion object {
+        fun instance() = ListFragment()
+    }
 }

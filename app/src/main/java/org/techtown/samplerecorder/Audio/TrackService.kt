@@ -9,16 +9,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.Util.AppModule.dataToShort
+import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
+import org.techtown.samplerecorder.HomeFragment.Companion.emptyQueue
+import org.techtown.samplerecorder.HomeFragment.Companion.isPlaying
+import org.techtown.samplerecorder.HomeFragment.Companion.playChannel
+import org.techtown.samplerecorder.HomeFragment.Companion.playRate
+import org.techtown.samplerecorder.HomeFragment.Companion.type
 import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
 import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_CAN_PLAY
 import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_PAUSE_STATE
-import org.techtown.samplerecorder.MainActivity.Companion.bufferSize
-import org.techtown.samplerecorder.MainActivity.Companion.emptyQueue
-import org.techtown.samplerecorder.MainActivity.Companion.isPlaying
-import org.techtown.samplerecorder.MainActivity.Companion.playChannel
-import org.techtown.samplerecorder.MainActivity.Companion.playRate
-import org.techtown.samplerecorder.MainActivity.Companion.type
+import org.techtown.samplerecorder.Util.AppModule.dataToShort
 import java.io.RandomAccessFile
 
 class TrackService {
