@@ -6,12 +6,12 @@
         android:id="@+id/list_play"
         android:title="list"
         android:icon="@drawable/ic_main_toolbar_list"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_exit"
         android:title="settings"
-        android:icon="@drawable/ic_power_off"
+        android:icon="@drawable/ic_main_toolbar_power_off"
         app:showAsAction="always" />
 
 </menu>

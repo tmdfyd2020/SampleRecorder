@@ -152,14 +152,14 @@ class MainActivity : AppCompatActivity() {
                 override fun onGlobalLayout() {
                     val containerWidth = width
                     with (binding.layoutMainLogWindow) {
-                        viewTreeObserver.addOnGlobalLayoutListener(object :
-                            ViewTreeObserver.OnGlobalLayoutListener {
+                        class OnGlobalLayoutListener : ViewTreeObserver.OnGlobalLayoutListener {
                             override fun onGlobalLayout() {
                                 logWindowX = ((containerWidth - width) / 2).toFloat()
                                 logWindowY = (height / 2).toFloat()
                                 viewTreeObserver.removeOnGlobalLayoutListener(this)
                             }
-                        })
+                        }
+                        viewTreeObserver.addOnGlobalLayoutListener(OnGlobalLayoutListener())
                     }
                     viewTreeObserver.removeOnGlobalLayoutListener(this)
                 }
@@ -186,6 +186,8 @@ class MainActivity : AppCompatActivity() {
                         .y(event.rawY + moveY)
                         .setDuration(0)
                         .start()
+                    logWindowX = view.x
+                    logWindowY = view.y
                 }
             }
             true
@@ -449,7 +451,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode == RESULT_OK) {
             when (requestCode) {
                 CODE_FILE_NAME -> {
                     val name = data?.getStringExtra(KEY_FILE_NAME)
