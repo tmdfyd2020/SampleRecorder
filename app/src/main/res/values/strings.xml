@@ -78,4 +78,16 @@
     <string name="file_name_btn_save">저장</string>
     <string name="file_name_btn_back">취소</string>
 
+    <!-- View model string -->
+    <string name="view_model_source">Source\n%s</string>
+    <string name="view_model_record_channel">Channel\n%s</string>
+    <string name="view_model_record_rate">Sample Rate\n%s</string>
+    <string name="view_model_buffer_size">Buffer Size\n%s</string>
+    <string name="view_model_type">Play Type\n%s</string>
+    <string name="view_model_play_channel">Channel\n%s</string>
+    <string name="view_model_play_rate">Sample Rate\n%s</string>
+    <string name="view_model_volume">Volume\n%s</string>
+
+
+
 </resources>

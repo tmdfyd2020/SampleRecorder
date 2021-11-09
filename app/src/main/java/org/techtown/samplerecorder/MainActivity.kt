@@ -6,28 +6,14 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.Handler
-import android.os.Message
-import android.os.SystemClock
-import android.provider.Settings
 import android.view.*
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
 import android.view.animation.DecelerateInterpolator
-import android.view.animation.LinearInterpolator
-import android.widget.Button
-import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -36,25 +22,15 @@ import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.Audio.Queue
-import org.techtown.samplerecorder.Audio.RecordService
 import org.techtown.samplerecorder.Audio.RecordService.Companion.CODE_FILE_NAME
 import org.techtown.samplerecorder.Audio.RecordService.Companion.record
-import org.techtown.samplerecorder.Audio.RecordService.Companion.recordWave
-import org.techtown.samplerecorder.Audio.TrackService
-import org.techtown.samplerecorder.Audio.TrackService.Companion.playWave
 import org.techtown.samplerecorder.Database.RoomHelper
 import org.techtown.samplerecorder.Database.RoomItem
 import org.techtown.samplerecorder.Database.RoomItemDao
 import org.techtown.samplerecorder.FileNameActivity.Companion.KEY_FILE_NAME
-import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
-import org.techtown.samplerecorder.HomeFragment.Companion.playRate
-import org.techtown.samplerecorder.HomeFragment.Companion.volumeType
-import org.techtown.samplerecorder.List.ItemListActivity
-import org.techtown.samplerecorder.Util.DialogService
 import org.techtown.samplerecorder.Util.DialogService.Companion.dialog
+import org.techtown.samplerecorder.Util.DialogService2.Companion.dialogs
 import org.techtown.samplerecorder.Util.LogUtil
-import org.techtown.samplerecorder.Util.VolumeObserver
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -166,7 +142,8 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_exit -> {
-                dialog(this).create(getString(R.string.exit), "")
+//                dialog(this).create(getString(R.string.exit), "")
+                dialogs(getString(R.string.exit)).show(supportFragmentManager, "abc")
             }
             R.id.list_play -> {
                 if (fragmentId == MAIN) {

@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+        <variable
+            name="viewModel"
+            type="org.techtown.samplerecorder.HomeViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container_main"
         android:orientation="vertical"
@@ -107,7 +113,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_middle"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@string/source"
+                        android:text="@{@string/view_model_source(viewModel.source)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -119,7 +125,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@string/channel"
+                        android:text="@{@string/view_model_record_channel(viewModel.recordChannel)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -131,7 +137,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@string/rate"
+                        android:text="@{@string/view_model_record_rate(viewModel.recordRate)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -143,7 +149,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@string/buffer_size"
+                        android:text="@{@string/view_model_buffer_size(viewModel.bufferSize)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -240,7 +246,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_middle"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@string/type"
+                        android:text="@{@string/view_model_type(viewModel.type)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -252,7 +258,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@string/channel"
+                        android:text="@{@string/view_model_play_channel(viewModel.playChannel)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -264,7 +270,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@string/rate"
+                        android:text="@{@string/view_model_play_rate(viewModel.playRate)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -277,7 +283,7 @@
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:layout_marginBottom="@dimen/main_play_setting_margin_bottom"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@string/volume"
+                        android:text="@{@string/view_model_volume(viewModel.volume)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />

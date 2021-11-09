@@ -4,4 +4,41 @@
         <item>ON</item>
         <item>OFF</item>
     </string-array>
+
+    <string-array name="source">
+        <item>@string/defaults</item>
+        <item>@string/mic</item>
+        <item>@string/voice_communication</item>
+        <item>@string/voice_performance</item>
+        <item>@string/voice_recognition</item>
+        <item>@string/unprocessed</item>
+    </string-array>
+
+    <string-array name="channel">
+        <item>@string/mono</item>
+        <item>@string/stereo</item>
+    </string-array>
+
+    <string-array name="rate">
+        <item>@string/rate_8000</item>
+        <item>@string/rate_11025</item>
+        <item>@string/rate_16000</item>
+        <item>@string/rate_22050</item>
+        <item>@string/rate_44100</item>
+    </string-array>
+
+    <string-array name="buffer">
+        <item>@string/buffer_size_512</item>
+        <item>@string/buffer_size_1024</item>
+        <item>@string/buffer_size_2048</item>
+    </string-array>
+
+    <string-array name="type">
+        <item>@string/ring</item>
+        <item>@string/media</item>
+        <item>@string/alarm</item>
+        <item>@string/notification</item>
+        <item>@string/system</item>
+    </string-array>
+
 </resources>

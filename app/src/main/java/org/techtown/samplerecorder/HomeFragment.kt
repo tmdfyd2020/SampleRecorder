@@ -21,11 +21,14 @@ import android.view.animation.LinearInterpolator
 import android.widget.Button
 import android.widget.ImageView
 import androidx.core.view.children
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import org.techtown.samplerecorder.Audio.Queue
 import org.techtown.samplerecorder.Audio.RecordService
 import org.techtown.samplerecorder.Audio.TrackService
 import org.techtown.samplerecorder.Util.DialogService.Companion.dialog
+import org.techtown.samplerecorder.Util.DialogService2.Companion.dialogs
 import org.techtown.samplerecorder.Util.LogUtil
 import org.techtown.samplerecorder.Util.VolumeObserver
 import org.techtown.samplerecorder.databinding.FragmentHomeBinding
@@ -55,13 +58,23 @@ class HomeFragment : Fragment(), View.OnClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+//        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
+        val view = binding.root
         LogUtil.d(TAG, "")
-        return binding.root
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.lifecycleOwner = this
+        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+        binding.viewModel = viewModel
+        initUi()
     }
 
     override fun onStart() {
-        initUi()
+//        initUi()
         initState()
         setOnClickListener()
         LogUtil.d(TAG, "")
@@ -75,6 +88,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
         val sharedPreferences = requireContext().getSharedPreferences(DATABASE, MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         fileDrop = sharedPreferences.getBoolean(FILE_DROP, false)
+        LogUtil.i(TAG, "Change file drop state : $fileDrop")
         if (fileDrop) switchButton.selectedTab = 0
         else switchButton.selectedTab = 1
         switchButton.setOnSwitchListener { position, _ ->
@@ -83,6 +97,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
                 putBoolean(FILE_DROP, fileDrop)
                 apply()
             }
+            LogUtil.i(TAG, "Change file drop state : $fileDrop")
         }
 
         // Volume Content Observer 초기화
@@ -97,17 +112,18 @@ class HomeFragment : Fragment(), View.OnClickListener {
     private fun initUi() {
         val audioManager = context?.getSystemService(AUDIO_SERVICE) as AudioManager
         val nCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        with (binding) {
-            btnRecordSource.text = "${getString(R.string.source)}\n${getString(R.string.mic)}"
-            btnPlayType.text = "${getString(R.string.type)}\n${getString(R.string.media)}"
-            btnRecordChannel.text = "${getString(R.string.channel)}\n${getString(R.string.mono)}"
-            btnPlayChannel.text = "${getString(R.string.channel)}\n${getString(R.string.mono)}"
-            btnRecordSampleRate.text = "${getString(R.string.rate)}\n${getString(R.string.rate_16000)}"
-            btnPlaySampleRate.text = "${getString(R.string.rate)}\n${getString(R.string.rate_16000)}"
-            btnRecordBufferSize.text = "${getString(R.string.buffer_size)}\n${getString(R.string.buffer_size_1024)}"
-            btnPlay.isEnabled = false
-            btnPlayVolume.text = "${getString(R.string.volume)}\n${nCurrentVolume}"
+        with (viewModel) {
+            loadInfo(getString(R.string.source), getString(R.string.mic))
+            loadInfo(getString(R.string.channel), getString(R.string.mono), getString(R.string.record))
+            loadInfo(getString(R.string.rate), getString(R.string.rate_16000), getString(R.string.record))
+            loadInfo(getString(R.string.buffer_size), getString(R.string.buffer_size_1024))
+            loadInfo(getString(R.string.type), getString(R.string.media))
+            loadInfo(getString(R.string.channel), getString(R.string.mono), getString(R.string.play))
+            loadInfo(getString(R.string.rate), getString(R.string.rate_16000), getString(R.string.play))
+            loadInfo(getString(R.string.source), getString(R.string.mic))
+            loadInfo(getString(R.string.volume), nCurrentVolume.toString())
         }
+        binding.btnPlay.isEnabled = false
     }
 
     private fun setOnClickListener() {
@@ -126,21 +142,15 @@ class HomeFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(view: View) {
         when (view.id) {
-            R.id.btn_record -> {
-                LogUtil.d(TAG, "")
-                record()
-            }
+            R.id.btn_record -> record()
             R.id.btn_play -> play()
-            R.id.btn_record_source -> {
-                LogUtil.d(TAG, "")
-                dialogService.create(getString(R.string.source))
-            }
-            R.id.btn_record_channel -> dialogService.create(getString(R.string.channel), getString(R.string.record))
-            R.id.btn_record_sampleRate -> dialogService.create(getString(R.string.rate), getString(R.string.record))
-            R.id.btn_record_bufferSize -> dialogService.create(getString(R.string.buffer_size))
-            R.id.btn_play_type -> dialogService.create(getString(R.string.type))
-            R.id.btn_play_channel -> dialogService.create(getString(R.string.channel), getString(R.string.play))
-            R.id.btn_play_sampleRate -> dialogService.create(getString(R.string.rate), getString(R.string.play))
+            R.id.btn_record_source -> dialogs(getString(R.string.source)).show(childFragmentManager, getString(R.string.source))
+            R.id.btn_record_channel -> dialogs(getString(R.string.channel), getString(R.string.record)).show(childFragmentManager, getString(R.string.channel))
+            R.id.btn_record_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.record)).show(childFragmentManager, getString(R.string.rate))
+            R.id.btn_record_bufferSize -> dialogs(getString(R.string.buffer_size)).show(childFragmentManager, getString(R.string.buffer_size))
+            R.id.btn_play_type -> dialogs(getString(R.string.type)).show(childFragmentManager, getString(R.string.type))
+            R.id.btn_play_channel -> dialogs(getString(R.string.channel), getString(R.string.play)).show(childFragmentManager, getString(R.string.channel))
+            R.id.btn_play_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.play)).show(childFragmentManager, getString(R.string.rate))
             R.id.btn_play_volume -> dialogService.create(getString(R.string.volume))
         }
     }
@@ -263,30 +273,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
 
     @SuppressLint("SetTextI18n")
     fun changeTextUi(setting: String, value: String, mode: String = "") {
-        with (binding) {
-            when (mode) {
-                getString(R.string.record) -> {
-                    when (setting) {
-                        getString(R.string.channel) -> { btnRecordChannel.text = "$setting\n$value" }
-                        getString(R.string.rate) -> { btnRecordSampleRate.text = "$setting\n$value" }
-                    }
-                }
-                getString(R.string.play) -> {
-                    when (setting) {
-                        getString(R.string.channel) -> { btnPlayChannel.text = "$setting\n$value" }
-                        getString(R.string.rate) -> { btnPlaySampleRate.text = "$setting\n$value" }
-                    }
-                }
-                else -> {
-                    when (setting) {
-                        getString(R.string.source) -> { btnRecordSource.text = "$setting\n$value" }
-                        getString(R.string.buffer_size) -> { btnRecordBufferSize.text = "$setting\n$value" }
-                        getString(R.string.type) -> { btnPlayType.text = "$setting\n$value" }
-                        getString(R.string.volume) -> { btnPlayVolume.text = "$setting\n$value" }
-                    }
-                }
-            }
-        }
+        viewModel.loadInfo(setting, value, mode)
     }
 
     val time: String
@@ -354,8 +341,8 @@ class HomeFragment : Fragment(), View.OnClickListener {
         var bufferSize = 1024
         var volumeType = AudioManager.STREAM_MUSIC
 
-        fun instance() = HomeFragment()
+        lateinit var viewModel: HomeViewModel
 
-        var _binding: FragmentHomeBinding? = null
+        fun instance() = HomeFragment()
     }
 }
