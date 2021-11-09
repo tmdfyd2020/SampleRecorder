@@ -1,9 +1,8 @@
-package org.techtown.samplerecorder.Database
+package org.techtown.samplerecorder.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.File
 
 @Entity(tableName = "room_items")
 class RoomItem(@ColumnInfo var title: String,

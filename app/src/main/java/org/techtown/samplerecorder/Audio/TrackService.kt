@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Audio
+package org.techtown.samplerecorder.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -9,16 +9,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
-import org.techtown.samplerecorder.HomeFragment.Companion.emptyQueue
-import org.techtown.samplerecorder.HomeFragment.Companion.isPlaying
-import org.techtown.samplerecorder.HomeFragment.Companion.playChannel
-import org.techtown.samplerecorder.HomeFragment.Companion.playRate
-import org.techtown.samplerecorder.HomeFragment.Companion.type
-import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
-import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_CAN_PLAY
-import org.techtown.samplerecorder.List.ItemListViewHolder.Companion.FLAG_PAUSE_STATE
-import org.techtown.samplerecorder.Util.AppModule.dataToShort
+import org.techtown.samplerecorder.home.HomeFragment.Companion.bufferSize
+import org.techtown.samplerecorder.home.HomeFragment.Companion.emptyQueue
+import org.techtown.samplerecorder.home.HomeFragment.Companion.isPlaying
+import org.techtown.samplerecorder.home.HomeFragment.Companion.playChannel
+import org.techtown.samplerecorder.home.HomeFragment.Companion.playRate
+import org.techtown.samplerecorder.home.HomeFragment.Companion.type
+import org.techtown.samplerecorder.list.ListViewHolder.Companion.FLAG_CAN_PLAY
+import org.techtown.samplerecorder.list.ListViewHolder.Companion.FLAG_PAUSE_STATE
+import org.techtown.samplerecorder.list.ListFragment.Companion.BUTTON_PLAY
+import org.techtown.samplerecorder.util.AppModule.dataToShort
 import java.io.RandomAccessFile
 
 class TrackService {

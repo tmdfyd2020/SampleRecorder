@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Util
+package org.techtown.samplerecorder.util
 
 import android.annotation.SuppressLint
 import android.content.Context

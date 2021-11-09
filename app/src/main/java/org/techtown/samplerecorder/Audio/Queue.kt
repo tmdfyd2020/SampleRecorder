@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Audio
+package org.techtown.samplerecorder.audio
 
 import java.util.*
 import java.util.Queue

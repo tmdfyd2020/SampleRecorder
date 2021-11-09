@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".home.HomeFragment">
 
     <data>
         <variable
-            name="viewModel"
-            type="org.techtown.samplerecorder.HomeViewModel" />
+            name="viewModels"
+            type="org.techtown.samplerecorder.home.HomeViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -14,8 +15,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
-        tools:context=".HomeFragment">
+        android:background="@color/white">
 
         <ImageView
             android:id="@+id/img_recording"
@@ -113,7 +113,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_middle"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_source(viewModel.source)}"
+                        android:text="@{@string/view_model_source(viewModels.source)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -125,7 +125,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_record_channel(viewModel.recordChannel)}"
+                        android:text="@{@string/view_model_record_channel(viewModels.recordChannel)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -137,7 +137,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_record_rate(viewModel.recordRate)}"
+                        android:text="@{@string/view_model_record_rate(viewModels.recordRate)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -149,7 +149,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_buffer_size(viewModel.bufferSize)}"
+                        android:text="@{@string/view_model_buffer_size(viewModels.bufferSize)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -246,7 +246,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_middle"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_type(viewModel.type)}"
+                        android:text="@{@string/view_model_type(viewModels.type)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -258,7 +258,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_play_channel(viewModel.playChannel)}"
+                        android:text="@{@string/view_model_play_channel(viewModels.playChannel)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -270,7 +270,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_play_rate(viewModel.playRate)}"
+                        android:text="@{@string/view_model_play_rate(viewModels.playRate)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />
@@ -283,7 +283,7 @@
                         android:layout_marginTop="@dimen/main_content_margin_small"
                         android:layout_marginBottom="@dimen/main_play_setting_margin_bottom"
                         android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_volume(viewModel.volume)}"
+                        android:text="@{@string/view_model_volume(viewModels.volume)}"
                         android:textSize="@dimen/main_button_text_size"
                         android:textAllCaps="false"
                         android:onClick="onClick" />

@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Database
+package org.techtown.samplerecorder.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

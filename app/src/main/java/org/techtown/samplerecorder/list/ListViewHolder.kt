@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.List
+package org.techtown.samplerecorder.list
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -12,11 +12,11 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.Audio.TrackService
-import org.techtown.samplerecorder.Database.RoomItem
-import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PAUSE
-import org.techtown.samplerecorder.List.ItemListActivity.Companion.BUTTON_PLAY
-import org.techtown.samplerecorder.Util.LogUtil
+import org.techtown.samplerecorder.audio.TrackService
+import org.techtown.samplerecorder.database.RoomItem
+import org.techtown.samplerecorder.list.ListFragment.Companion.BUTTON_PAUSE
+import org.techtown.samplerecorder.list.ListFragment.Companion.BUTTON_PLAY
+import org.techtown.samplerecorder.util.LogUtil
 import org.techtown.samplerecorder.MainActivity.Companion.filePath
 import org.techtown.samplerecorder.MainActivity.Companion.itemDAO
 import org.techtown.samplerecorder.MainActivity.Companion.itemList
@@ -25,7 +25,7 @@ import org.techtown.samplerecorder.databinding.ItemListBinding
 import java.io.File
 import java.io.RandomAccessFile
 
-class ItemListViewHolder(val binding: ItemListBinding, private val adapter: ItemListAdapter) : RecyclerView.ViewHolder(binding.root) {
+class ListViewHolder(val binding: ItemListBinding, private val adapter: ListAdapter) : RecyclerView.ViewHolder(binding.root) {
 
     private val TAG = this.javaClass.simpleName
 

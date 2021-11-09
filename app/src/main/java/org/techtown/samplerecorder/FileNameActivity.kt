@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
-import org.techtown.samplerecorder.Util.AppModule.clearFocusAndHideKeyboard
-import org.techtown.samplerecorder.Util.AppModule.setFocusAndShowKeyboard
+import org.techtown.samplerecorder.util.AppModule.clearFocusAndHideKeyboard
+import org.techtown.samplerecorder.util.AppModule.setFocusAndShowKeyboard
 import org.techtown.samplerecorder.databinding.ActivityFileNameBinding
 
 class FileNameActivity : AppCompatActivity() {

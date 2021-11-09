@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Audio
+package org.techtown.samplerecorder.audio
 
 import android.content.Context
 import android.content.Intent
@@ -10,19 +10,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.Database.RoomItem
+import org.techtown.samplerecorder.database.RoomItem
 import org.techtown.samplerecorder.FileNameActivity
-import org.techtown.samplerecorder.HomeFragment.Companion.bufferSize
-import org.techtown.samplerecorder.HomeFragment.Companion.isRecording
-import org.techtown.samplerecorder.HomeFragment.Companion.recordChannel
-import org.techtown.samplerecorder.HomeFragment.Companion.recordRate
-import org.techtown.samplerecorder.HomeFragment.Companion.source
+import org.techtown.samplerecorder.home.HomeFragment.Companion.bufferSize
+import org.techtown.samplerecorder.home.HomeFragment.Companion.isRecording
+import org.techtown.samplerecorder.home.HomeFragment.Companion.recordChannel
+import org.techtown.samplerecorder.home.HomeFragment.Companion.recordRate
+import org.techtown.samplerecorder.home.HomeFragment.Companion.source
 import org.techtown.samplerecorder.MainActivity
 import org.techtown.samplerecorder.MainActivity.Companion.filePath
 import org.techtown.samplerecorder.R
-import org.techtown.samplerecorder.Util.AppModule.currentTimeName
-import org.techtown.samplerecorder.Util.AppModule.dataToShort
-import org.techtown.samplerecorder.Util.LogUtil
+import org.techtown.samplerecorder.util.AppModule.currentTimeName
+import org.techtown.samplerecorder.util.AppModule.dataToShort
+import org.techtown.samplerecorder.util.LogUtil
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -33,8 +33,8 @@ class RecordService(context: Context) {
     private var mainActivity = context as MainActivity
     private var audioRecord: AudioRecord? = null
     private var outputStream: FileOutputStream? = null
-    private var file: File? = null
-    private lateinit var time: String
+//    private var file: File? = null
+//    private lateinit var time: String
     private var job: Job? = null
 
     fun start(queue: Queue, fileDrop: Boolean) {
@@ -109,6 +109,7 @@ class RecordService(context: Context) {
     }
 
     fun addItem(name: String, context: Context) {
+        LogUtil.i(TAG, "file name : ${file!!.name}")
         val itemName : String = if (name == "") file!!.name else name
         val channel : String = if (recordChannel == AudioFormat.CHANNEL_IN_MONO) context.getString(R.string.mono) else context.getString(R.string.stereo)
         val item = RoomItem(itemName, file!!.name, time, channel, recordRate)
@@ -123,6 +124,8 @@ class RecordService(context: Context) {
         private const val TAG = "RecordService"
         var recordWave = 0
         const val CODE_FILE_NAME = 1
+        var file: File? = null
+        lateinit var time: String
         fun record(context: Context) = RecordService(context)
     }
 }

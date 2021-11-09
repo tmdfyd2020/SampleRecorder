@@ -13,6 +13,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Bundle
 import android.view.*
+import android.view.ViewTreeObserver.*
 import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -22,15 +23,16 @@ import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.Audio.RecordService.Companion.CODE_FILE_NAME
-import org.techtown.samplerecorder.Audio.RecordService.Companion.record
-import org.techtown.samplerecorder.Database.RoomHelper
-import org.techtown.samplerecorder.Database.RoomItem
-import org.techtown.samplerecorder.Database.RoomItemDao
+import org.techtown.samplerecorder.audio.RecordService.Companion.CODE_FILE_NAME
+import org.techtown.samplerecorder.audio.RecordService.Companion.record
+import org.techtown.samplerecorder.database.RoomHelper
+import org.techtown.samplerecorder.database.RoomItem
+import org.techtown.samplerecorder.database.RoomItemDao
 import org.techtown.samplerecorder.FileNameActivity.Companion.KEY_FILE_NAME
-import org.techtown.samplerecorder.Util.DialogService.Companion.dialog
-import org.techtown.samplerecorder.Util.DialogService2.Companion.dialogs
-import org.techtown.samplerecorder.Util.LogUtil
+import org.techtown.samplerecorder.home.HomeFragment
+import org.techtown.samplerecorder.list.ListFragment
+import org.techtown.samplerecorder.util.DialogService.Companion.dialogs
+import org.techtown.samplerecorder.util.LogUtil
 import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -39,66 +41,54 @@ class MainActivity : AppCompatActivity() {
 
     private var fragmentId: Int = MAIN
 
-    private val container by lazy { binding.containerMain }
-    private val button by lazy { binding.ivMainStartWindow }
-    private val logWindow by lazy { binding.layoutMainLogWindow }
+    private val container by lazy { binding.container }
+    private val logWindow by lazy { binding.layoutLogWindow.layoutMainLogWindow }
+
     private var logWindowX: Float = 0f
     private var logWindowY: Float = 0f
     private var shortAnimationDuration: Int = 0
     private var currentAnimator: Animator? = null
     private var zoomState: Boolean = false
 
-    private lateinit var helper: RoomHelper
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        changeFragment(fragmentId)
-
-        helper = Room.databaseBuilder(this, RoomHelper::class.java, "room_items").build()
+        val helper = Room.databaseBuilder(this, RoomHelper::class.java, "room_items").build()
         itemDAO = helper.roomItemDao()
         syncDatabase()
-
-        permissionCheck()
-        initUi()
-        initState()
-        initListener()
+        changeFragment(fragmentId)
+        checkPermission()
+        initialize()
     }
 
-    private fun permissionCheck() {
+    private fun checkPermission() {
         val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
         if (permission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), PERMISSION_CODE)
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun initUi() {
-        val toolbar = binding.toolbarMain
-        setSupportActionBar(toolbar)
+    @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
+    private fun initialize() {
+        // Toolbar initialization
+        setSupportActionBar(binding.toolbarMain)
         supportActionBar?.setDisplayShowTitleEnabled(false)
-    }
 
-    private fun initState() {
         filePath = filesDir.absolutePath
 
-//        volumeControlStream = volumeType
-
-        // Log window 첫 시작 위치 설정
-        with (binding.containerMain) {
-            viewTreeObserver.addOnGlobalLayoutListener(object :
-                ViewTreeObserver.OnGlobalLayoutListener {
+        // Initialize start coordination of emerging log window
+        with (container) {
+            viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     val containerWidth = width
-                    with (binding.layoutMainLogWindow) {
-                        class OnGlobalLayoutListener : ViewTreeObserver.OnGlobalLayoutListener {
+                    with (logWindow) {
+                        viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
                             override fun onGlobalLayout() {
                                 logWindowX = ((containerWidth - width) / 2).toFloat()
                                 logWindowY = (height / 2).toFloat()
                                 viewTreeObserver.removeOnGlobalLayoutListener(this)
                             }
-                        }
-                        viewTreeObserver.addOnGlobalLayoutListener(OnGlobalLayoutListener())
+                        })
                     }
                     viewTreeObserver.removeOnGlobalLayoutListener(this)
                 }
@@ -106,19 +96,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
-    }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun initListener() {
+        // Log window touch and drag moving listener initialization
         var moveX = 0f
         var moveY = 0f
-        binding.layoutMainLogWindow.setOnTouchListener { view: View, event: MotionEvent ->
-            when(event.action) {
+        logWindow.setOnTouchListener { view: View, event: MotionEvent ->
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     moveX = view.x - event.rawX
                     moveY = view.y - event.rawY
                 }
-
                 MotionEvent.ACTION_MOVE -> {
                     view.animate()
                         .x(event.rawX + moveX)
@@ -142,8 +129,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_exit -> {
-//                dialog(this).create(getString(R.string.exit), "")
-                dialogs(getString(R.string.exit)).show(supportFragmentManager, "abc")
+                dialogs(getString(R.string.exit)).show(supportFragmentManager, getString(R.string.exit))
             }
             R.id.list_play -> {
                 if (fragmentId == MAIN) {
@@ -164,28 +150,13 @@ class MainActivity : AppCompatActivity() {
                 zoomAnimation(view)
             }
 
-            R.id.iv_main_minimize_popup -> {
-                with (binding) {
-                    layoutMainLogWindowBody.visibility = View.GONE
-                    ivMainMinimizePopup.visibility = View.GONE
-                    ivMainMaximizePopup.visibility = View.VISIBLE
-                }
-            }
-
-            R.id.iv_main_maximize_popup -> {
-                with (binding) {
-                    layoutMainLogWindowBody.visibility = View.VISIBLE
-                    ivMainMinimizePopup.visibility = View.VISIBLE
-                    ivMainMaximizePopup.visibility = View.GONE
-                }
-            }
-
             R.id.iv_main_close_popup -> {
-                zoomAnimation(button)
+                zoomAnimation(binding.ivMainStartWindow)
             }
         }
     }
 
+    // TODO 여기서부터 시작
     fun insertItem(item: RoomItem) {
         CoroutineScope(Dispatchers.IO).launch {
             itemDAO.insert(item)
@@ -204,20 +175,23 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == RESULT_OK) {
+            LogUtil.d(TAG, "Result_ok pass")
             when (requestCode) {
                 CODE_FILE_NAME -> {
+                    LogUtil.d(TAG, "request code pass")
                     val name = data?.getStringExtra(KEY_FILE_NAME)
                     record(this).addItem(name!!, this)
                 }
             }
         } else {
+            LogUtil.d(TAG, "result ok null")
             record(this).removeFile()
         }
     }
 
-    fun writeLogWindow(msg: String) {
-        val totalMsg = "$msg\n${binding.tvMainLogWindow.text}"
-        binding.tvMainLogWindow.text = totalMsg
+    fun writeLogWindow(msg: String) {  // textView
+        val totalMsg = "$msg\n${binding.layoutLogWindow.tvMainLogWindow.text}"
+        binding.layoutLogWindow.tvMainLogWindow.text = totalMsg
     }
 
     /**

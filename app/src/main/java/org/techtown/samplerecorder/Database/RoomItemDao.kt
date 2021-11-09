@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder.Database
+package org.techtown.samplerecorder.database
 
 import androidx.room.Dao
 import androidx.room.Delete

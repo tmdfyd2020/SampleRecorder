@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_main_log_window"
+    android:layout_width="@dimen/main_log_window_width"
+    android:layout_height="wrap_content"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    android:background="@drawable/bg_layout_round_aablack"
+    android:visibility="invisible" >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_main_log_window_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="@dimen/main_content_margin_tiny" >
+
+        <ImageView
+            android:id="@+id/iv_main_close_popup"
+            android:layout_width="@dimen/main_img_window_size"
+            android:layout_height="@dimen/main_img_window_size"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_margin="@dimen/main_content_margin_tiny"
+            android:src="@drawable/ic_close_popup"
+            android:scaleType="fitXY"
+            android:onClick="onClick" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_main_log_window_body"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        app:layout_constraintTop_toBottomOf="@+id/layout_main_log_window_header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" >
+
+        <ScrollView
+            android:id="@+id/scroll_main_log_window"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="@dimen/main_content_margin_middle"
+            android:scrollbarSize="7dp"
+            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+            android:scrollbarTrackVertical="@drawable/bg_scrollview_background" >
+
+            <TextView
+                android:id="@+id/tv_main_log_window"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/main_content_margin_small"
+                android:textSize="@dimen/main_img_window_text_size"
+                android:textColor="@color/white" />
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

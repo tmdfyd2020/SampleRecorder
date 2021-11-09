@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.home
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

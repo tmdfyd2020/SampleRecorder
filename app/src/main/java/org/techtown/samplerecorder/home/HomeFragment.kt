@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.home
 
 import android.annotation.SuppressLint
 import android.content.Context.AUDIO_SERVICE
@@ -24,21 +24,21 @@ import androidx.core.view.children
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import org.techtown.samplerecorder.Audio.Queue
-import org.techtown.samplerecorder.Audio.RecordService
-import org.techtown.samplerecorder.Audio.TrackService
-import org.techtown.samplerecorder.Util.DialogService.Companion.dialog
-import org.techtown.samplerecorder.Util.DialogService2.Companion.dialogs
-import org.techtown.samplerecorder.Util.LogUtil
-import org.techtown.samplerecorder.Util.VolumeObserver
+import org.techtown.samplerecorder.audio.Queue
+import org.techtown.samplerecorder.audio.RecordService
+import org.techtown.samplerecorder.audio.TrackService
+import org.techtown.samplerecorder.R
+import org.techtown.samplerecorder.util.DialogService.Companion.dialogs
+import org.techtown.samplerecorder.util.LogUtil
+import org.techtown.samplerecorder.util.VolumeObserver
 import org.techtown.samplerecorder.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment(), View.OnClickListener {
 
     private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!  // binding이 null 값을 갖음
+    private val binding get() = _binding!!
 
-    private val context by lazy { activity }
+    private val context by lazy { activity }  // TODO 삭제
 
     @Suppress("DEPRECATION")
     private val volumeObserver by lazy { VolumeObserver(requireContext(), Handler()) }
@@ -47,8 +47,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
     private val waveform by lazy { binding.viewWaveForm }
     private val switchButton by lazy { binding.switchButton }
     private var queue: Queue? = null
-
-    private val dialogService by lazy { dialog(requireContext()) }
 
     private var startTime: Long = 0
     private var fileDrop = false
@@ -69,7 +67,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        binding.viewModel = viewModel
+        binding.viewModels = viewModel
         initUi()
     }
 
@@ -141,17 +139,24 @@ class HomeFragment : Fragment(), View.OnClickListener {
     }
 
     override fun onClick(view: View) {
-        when (view.id) {
-            R.id.btn_record -> record()
-            R.id.btn_play -> play()
-            R.id.btn_record_source -> dialogs(getString(R.string.source)).show(childFragmentManager, getString(R.string.source))
-            R.id.btn_record_channel -> dialogs(getString(R.string.channel), getString(R.string.record)).show(childFragmentManager, getString(R.string.channel))
-            R.id.btn_record_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.record)).show(childFragmentManager, getString(R.string.rate))
-            R.id.btn_record_bufferSize -> dialogs(getString(R.string.buffer_size)).show(childFragmentManager, getString(R.string.buffer_size))
-            R.id.btn_play_type -> dialogs(getString(R.string.type)).show(childFragmentManager, getString(R.string.type))
-            R.id.btn_play_channel -> dialogs(getString(R.string.channel), getString(R.string.play)).show(childFragmentManager, getString(R.string.channel))
-            R.id.btn_play_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.play)).show(childFragmentManager, getString(R.string.rate))
-            R.id.btn_play_volume -> dialogService.create(getString(R.string.volume))
+        childFragmentManager.let {
+            when (view.id) {
+                R.id.btn_record -> record()
+                R.id.btn_play -> play()
+                R.id.btn_record_source -> dialogs(getString(R.string.source)).show(it, getString(R.string.source))
+                R.id.btn_record_channel -> dialogs(getString(R.string.channel), getString(R.string.record)).show(it, getString(
+                    R.string.channel))
+                R.id.btn_record_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.record)).show(it, getString(
+                    R.string.rate))
+                R.id.btn_record_bufferSize -> dialogs(getString(R.string.buffer_size)).show(it, getString(
+                    R.string.buffer_size))
+                R.id.btn_play_type -> dialogs(getString(R.string.type)).show(it, getString(R.string.type))
+                R.id.btn_play_channel -> dialogs(getString(R.string.channel), getString(R.string.play)).show(it, getString(
+                    R.string.channel))
+                R.id.btn_play_sampleRate -> dialogs(getString(R.string.rate), getString(R.string.play)).show(it, getString(
+                    R.string.rate))
+                R.id.btn_play_volume -> dialogs(getString(R.string.volume)).show(it, getString(R.string.volume))
+            }
         }
     }
 
@@ -309,10 +314,24 @@ class HomeFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    override fun onDestroy() {
-//        requireContext().contentResolver.unregisterContentObserver(volumeObserver)
-        super.onDestroy()
-    }
+//    // 여기로 안 옴
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//
+//        if (resultCode == RESULT_OK) {
+//            LogUtil.d(TAG, "Result_ok pass")
+//            when (requestCode) {
+//                RecordService.CODE_FILE_NAME -> {
+//                    LogUtil.d(TAG, "request code pass")
+//                    val name = data?.getStringExtra(FileNameActivity.KEY_FILE_NAME)
+//                    RecordService.record(requireContext()).addItem(name!!, requireContext())
+//                }
+//            }
+//        } else {
+//            LogUtil.d(TAG, "result ok null")
+//            RecordService.record(requireContext()).removeFile()
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

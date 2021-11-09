@@ -35,6 +35,7 @@
     <dimen name="main_switch_button_stroke_radius">10dp</dimen>
     <dimen name="main_switch_button_stroke_width">2dp</dimen>
     <dimen name="main_play_setting_margin_bottom">80dp</dimen>
+    <dimen name="main_log_window_width">350dp</dimen>
     <dimen name="main_log_window_radius">15dp</dimen>
 
     <!-- activity_list.xml -->
