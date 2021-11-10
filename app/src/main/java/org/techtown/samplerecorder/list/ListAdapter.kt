@@ -28,6 +28,6 @@ class ListAdapter(private val itemList: MutableList<RoomItem>) : RecyclerView.Ad
     }
 
     companion object {
-        private const val TAG = "ItemListAdapter"
+        private const val TAG = "ListAdapter"
     }
 }

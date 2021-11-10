@@ -4,7 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.MainActivity
+import org.techtown.samplerecorder.activity.MainActivity
 
 class LogUtil {
 

@@ -4,40 +4,40 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioRecord
-import android.widget.Toast
 import androidx.core.app.ActivityCompat.startActivityForResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.techtown.samplerecorder.database.RoomItem
-import org.techtown.samplerecorder.FileNameActivity
+import org.techtown.samplerecorder.activity.DialogActivity
+import org.techtown.samplerecorder.activity.DialogActivity.Companion.KEY_MODE_DIALOG
+import org.techtown.samplerecorder.activity.DialogActivity.Companion.MODE_FILE_NAME
 import org.techtown.samplerecorder.home.HomeFragment.Companion.bufferSize
 import org.techtown.samplerecorder.home.HomeFragment.Companion.isRecording
 import org.techtown.samplerecorder.home.HomeFragment.Companion.recordChannel
 import org.techtown.samplerecorder.home.HomeFragment.Companion.recordRate
 import org.techtown.samplerecorder.home.HomeFragment.Companion.source
-import org.techtown.samplerecorder.MainActivity
-import org.techtown.samplerecorder.MainActivity.Companion.filePath
-import org.techtown.samplerecorder.R
+import org.techtown.samplerecorder.activity.MainActivity
+import org.techtown.samplerecorder.activity.MainActivity.Companion.filePath
 import org.techtown.samplerecorder.util.AppModule.currentTimeName
 import org.techtown.samplerecorder.util.AppModule.dataToShort
-import org.techtown.samplerecorder.util.LogUtil
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class RecordService(context: Context) {
+class RecordService(private val context: Context) {
     private var mainActivity = context as MainActivity
     private var audioRecord: AudioRecord? = null
     private var outputStream: FileOutputStream? = null
-//    private var file: File? = null
-//    private lateinit var time: String
     private var job: Job? = null
+    private var fileDrop: Boolean = false
 
     fun start(queue: Queue, fileDrop: Boolean) {
+        this.fileDrop = fileDrop
+        if (fileDrop) fileCreate()
+
         if (audioRecord == null) {
             audioRecord = AudioRecord(
                 source,
@@ -49,18 +49,17 @@ class RecordService(context: Context) {
         }
         var audioData: ByteArray?
 
-        if (fileDrop) fileCreate()
-        
         audioRecord!!.startRecording()
-
         job = CoroutineScope(Dispatchers.IO).launch {
             var dataSize: Int
             while (isRecording) {
+                // Record write
                 audioData = ByteArray(bufferSize)
                 dataSize = audioRecord!!.read(audioData!!, 0, bufferSize)
                 queue.enqueue(audioData!!)
 
-                recordWave = 0  // Waveform
+                // Waveform
+                recordWave = 0
                 for (i in audioData!!.indices) recordWave = dataToShort(audioData)
 
                 if (fileDrop) fileWrite(audioData!!, dataSize)  // File Write
@@ -68,7 +67,7 @@ class RecordService(context: Context) {
         }
     }
 
-    fun stop(context: Context?, fileDrop: Boolean) {
+    fun stop() {
         if (audioRecord != null) {
             audioRecord!!.stop()
             audioRecord!!.release()
@@ -77,16 +76,16 @@ class RecordService(context: Context) {
         }
         if (fileDrop) {
             fileSave()
-            val intent = Intent(context, FileNameActivity::class.java)
-            startActivityForResult(context as MainActivity, intent, CODE_FILE_NAME, null)
-            LogUtil.i(TAG, "file path : ${file!!.name}")
-            Toast.makeText(context, file!!.name + " ${context.getString(R.string.toast_save)}", Toast.LENGTH_LONG).show()
+            val intent = Intent(context, DialogActivity::class.java).apply {
+                putExtra(KEY_MODE_DIALOG, MODE_FILE_NAME)
+            }
+            startActivityForResult(mainActivity, intent, CODE_FILE_NAME, null)
         }
     }
 
     private fun fileCreate() {
-        time = currentTimeName()
-        file = File(filePath, "$time.pcm")
+        fileCreateTime = currentTimeName()
+        file = File(filePath, "$fileCreateTime.pcm")
         outputStream = null
         try { outputStream = FileOutputStream(file) }
         catch (e: FileNotFoundException) { e.printStackTrace() }
@@ -108,24 +107,12 @@ class RecordService(context: Context) {
         }
     }
 
-    fun addItem(name: String, context: Context) {
-        LogUtil.i(TAG, "file name : ${file!!.name}")
-        val itemName : String = if (name == "") file!!.name else name
-        val channel : String = if (recordChannel == AudioFormat.CHANNEL_IN_MONO) context.getString(R.string.mono) else context.getString(R.string.stereo)
-        val item = RoomItem(itemName, file!!.name, time, channel, recordRate)
-        mainActivity.insertItem(item)
-    }
-
-    fun removeFile() {
-        file!!.delete()
-    }
-
     companion object {
         private const val TAG = "RecordService"
-        var recordWave = 0
-        const val CODE_FILE_NAME = 1
-        var file: File? = null
-        lateinit var time: String
         fun record(context: Context) = RecordService(context)
+        const val CODE_FILE_NAME = 1
+        lateinit var file: File
+        lateinit var fileCreateTime: String
+        var recordWave = 0
     }
 }

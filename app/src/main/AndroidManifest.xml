@@ -13,11 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".FileNameActivity"
+        <activity android:name=".activity.DialogActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/round_dialog_activity"
+            android:theme="@style/layout_dialog_activity"
             tools:ignore="LockedOrientationActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

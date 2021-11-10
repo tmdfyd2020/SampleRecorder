@@ -9,4 +9,7 @@
     <integer name="buffer_512">512</integer>
     <integer name="buffer_1024">1024</integer>
     <integer name="buffer_2048">2048</integer>
+
+    <!-- MainActivity.kt -->
+    <integer name="toast_height">200</integer>
 </resources>

@@ -28,7 +28,7 @@ import org.techtown.samplerecorder.home.HomeFragment.Companion.recordRate
 import org.techtown.samplerecorder.home.HomeFragment.Companion.source
 import org.techtown.samplerecorder.home.HomeFragment.Companion.type
 import org.techtown.samplerecorder.home.HomeFragment.Companion.volumeType
-import org.techtown.samplerecorder.MainActivity
+import org.techtown.samplerecorder.activity.MainActivity
 import org.techtown.samplerecorder.R
 
 class DialogService private constructor(

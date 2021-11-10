@@ -38,61 +38,52 @@ class HomeFragment : Fragment(), View.OnClickListener {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private val context by lazy { activity }  // TODO 삭제
+    private val waveform     by lazy { binding.viewWaveForm }
+    private val switchButton by lazy { binding.switchButton }
 
     @Suppress("DEPRECATION")
     private val volumeObserver by lazy { VolumeObserver(requireContext(), Handler()) }
-    private val audioRecord by lazy { RecordService(requireContext()) }
-    private val audioTrack by lazy { TrackService() }
-    private val waveform by lazy { binding.viewWaveForm }
-    private val switchButton by lazy { binding.switchButton }
+    private val audioRecord    by lazy { RecordService(requireContext()) }
+    private val audioTrack     by lazy { TrackService() }
     private var queue: Queue? = null
-
-    private var startTime: Long = 0
     private var fileDrop = false
+    private var startTime: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-//        _binding = FragmentHomeBinding.inflate(inflater, container, false)
         _binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
-        val view = binding.root
-        LogUtil.d(TAG, "")
-        return view
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.lifecycleOwner = this
-        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-        binding.viewModels = viewModel
-        initUi()
-    }
-
-    override fun onStart() {
-//        initUi()
         initState()
+        initUi()
         setOnClickListener()
-        LogUtil.d(TAG, "")
-        super.onStart()
     }
 
     private fun initState() {
+        // View Model initialization
+        binding.lifecycleOwner = this
+        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+        binding.vm = viewModel
+
         activity?.volumeControlStream = volumeType
 
-        // Switch Button 초기화
-        val sharedPreferences = requireContext().getSharedPreferences(DATABASE, MODE_PRIVATE)
+        // Switch Button initialization
+        val sharedPreferences = requireContext().getSharedPreferences(KEY_DATABASE, MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        fileDrop = sharedPreferences.getBoolean(FILE_DROP, false)
-        LogUtil.i(TAG, "Change file drop state : $fileDrop")
+        fileDrop = sharedPreferences.getBoolean(KEY_FILE_DROP, false)
+        LogUtil.i(TAG, "Current File drop state : $fileDrop")
         if (fileDrop) switchButton.selectedTab = 0
         else switchButton.selectedTab = 1
         switchButton.setOnSwitchListener { position, _ ->
             fileDrop = position == 0
             with (editor) {
-                putBoolean(FILE_DROP, fileDrop)
+                putBoolean(KEY_FILE_DROP, fileDrop)
                 apply()
             }
             LogUtil.i(TAG, "Change file drop state : $fileDrop")
@@ -108,7 +99,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
 
     @SuppressLint("SetTextI18n")
     private fun initUi() {
-        val audioManager = context?.getSystemService(AUDIO_SERVICE) as AudioManager
+        val audioManager = activity?.getSystemService(AUDIO_SERVICE) as AudioManager
         val nCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         with (viewModel) {
             loadInfo(getString(R.string.source), getString(R.string.mic))
@@ -168,7 +159,7 @@ class HomeFragment : Fragment(), View.OnClickListener {
             startRecording()
         } else {  // 정지 버튼 클릭 시
             isRecording = false
-            audioRecord.stop(requireContext(), fileDrop)
+            audioRecord.stop()
             stopRecording()
         }
     }
@@ -188,10 +179,10 @@ class HomeFragment : Fragment(), View.OnClickListener {
 
         // Ui
         with (binding) {
-            textTimer.visibility = View.VISIBLE
-            btnRecord.text = getString(R.string.stop)
             imgRecording.visibility = View.VISIBLE
             setAnimation(imgRecording, btnRecord)
+            textTimer.visibility = View.VISIBLE
+            btnRecord.text = getString(R.string.stop)
             btnPlay.isEnabled = false
         }
     }
@@ -228,10 +219,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
     }
 
     private fun startPlaying() {
-        // Waveform
-        waveform.recreate()
-        waveform.chunkColor = resources.getColor(R.color.blue_play)
-
         // Play time
         startTime = SystemClock.elapsedRealtime()
         val playMsg = playHandler.obtainMessage().apply {
@@ -239,19 +226,24 @@ class HomeFragment : Fragment(), View.OnClickListener {
         }
         playHandler.sendMessage(playMsg)
 
+        // Waveform
+        waveform.recreate()
+        waveform.chunkColor = resources.getColor(R.color.blue_play)
+
         // Ui
         with (binding) {
             imgPlaying.visibility = View.VISIBLE
+            btnRecord.isEnabled = false
             btnPlay.text = getString(R.string.stop)
             setAnimation(imgPlaying, btnPlay)
-            btnRecord.isEnabled = false
         }
     }
 
     private fun stopPlaying() {
-        LogUtil.d(TAG, "")
+        // Play time
         playHandler.removeMessages(0)
 
+        // Ui
         with (binding) {
             with (imgPlaying) {
                 clearAnimation()
@@ -314,25 +306,6 @@ class HomeFragment : Fragment(), View.OnClickListener {
         }
     }
 
-//    // 여기로 안 옴
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//
-//        if (resultCode == RESULT_OK) {
-//            LogUtil.d(TAG, "Result_ok pass")
-//            when (requestCode) {
-//                RecordService.CODE_FILE_NAME -> {
-//                    LogUtil.d(TAG, "request code pass")
-//                    val name = data?.getStringExtra(FileNameActivity.KEY_FILE_NAME)
-//                    RecordService.record(requireContext()).addItem(name!!, requireContext())
-//                }
-//            }
-//        } else {
-//            LogUtil.d(TAG, "result ok null")
-//            RecordService.record(requireContext()).removeFile()
-//        }
-//    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -340,12 +313,13 @@ class HomeFragment : Fragment(), View.OnClickListener {
 
     companion object {
         private const val TAG = "HomeFragment"
+        fun instance() = HomeFragment()
+        lateinit var viewModel: HomeViewModel
 
-        private const val PERMISSION_CODE = 1
         private const val MESSAGE_RECORD = 1
-        private const val MESSAGE_PLAY = 2
-        private const val DATABASE = "database"
-        private const val FILE_DROP = "fileDrop"
+        private const val MESSAGE_PLAY   = 2
+        private const val KEY_DATABASE   = "database"
+        private const val KEY_FILE_DROP  = "fileDrop"
 
         var isRecording = false
         var isPlaying = false
@@ -359,9 +333,5 @@ class HomeFragment : Fragment(), View.OnClickListener {
         var playRate = 16000
         var bufferSize = 1024
         var volumeType = AudioManager.STREAM_MUSIC
-
-        lateinit var viewModel: HomeViewModel
-
-        fun instance() = HomeFragment()
     }
 }

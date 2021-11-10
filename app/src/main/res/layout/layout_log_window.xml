@@ -9,7 +9,7 @@
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintBottom_toBottomOf="parent"
-    android:background="@drawable/bg_layout_round_aablack"
+    android:background="@drawable/bg_layout_round_transparent_black"
     android:visibility="invisible" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -37,7 +37,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_main_log_window_body"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="@dimen/main_log_window_body_height"
         app:layout_constraintTop_toBottomOf="@+id/layout_main_log_window_header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
@@ -50,8 +50,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="@dimen/main_content_margin_middle"
-            android:scrollbarSize="7dp"
-            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+            android:scrollbarSize="@dimen/drawable_scroll_width"
+            android:scrollbarThumbVertical="@drawable/scrollbar_thumb_log_window"
             android:scrollbarTrackVertical="@drawable/bg_scrollview_background" >
 
             <TextView

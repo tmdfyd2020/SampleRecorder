@@ -1,4 +1,4 @@
-package org.techtown.samplerecorder
+package org.techtown.samplerecorder.activity
 
 import android.Manifest
 import android.animation.Animator
@@ -11,10 +11,12 @@ import android.content.pm.PackageManager
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
+import android.media.AudioFormat
 import android.os.Bundle
 import android.view.*
-import android.view.ViewTreeObserver.*
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.animation.DecelerateInterpolator
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,26 +25,32 @@ import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.techtown.samplerecorder.activity.DialogActivity.Companion.KEY_FILE_NAME
+import org.techtown.samplerecorder.R
 import org.techtown.samplerecorder.audio.RecordService.Companion.CODE_FILE_NAME
+import org.techtown.samplerecorder.audio.RecordService.Companion.file
+import org.techtown.samplerecorder.audio.RecordService.Companion.fileCreateTime
 import org.techtown.samplerecorder.audio.RecordService.Companion.record
 import org.techtown.samplerecorder.database.RoomHelper
 import org.techtown.samplerecorder.database.RoomItem
+import org.techtown.samplerecorder.database.RoomItem.Companion.ROOM_TABLE_NAME
 import org.techtown.samplerecorder.database.RoomItemDao
-import org.techtown.samplerecorder.FileNameActivity.Companion.KEY_FILE_NAME
+import org.techtown.samplerecorder.databinding.ActivityMainBinding
 import org.techtown.samplerecorder.home.HomeFragment
+import org.techtown.samplerecorder.home.HomeFragment.Companion.recordChannel
+import org.techtown.samplerecorder.home.HomeFragment.Companion.recordRate
 import org.techtown.samplerecorder.list.ListFragment
 import org.techtown.samplerecorder.util.DialogService.Companion.dialogs
 import org.techtown.samplerecorder.util.LogUtil
-import org.techtown.samplerecorder.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private var fragmentId: Int = MAIN
-
     private val container by lazy { binding.container }
     private val logWindow by lazy { binding.layoutLogWindow.layoutMainLogWindow }
+
+    private var fragmentId: Int = MAIN
 
     private var logWindowX: Float = 0f
     private var logWindowY: Float = 0f
@@ -53,12 +61,29 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        val helper = Room.databaseBuilder(this, RoomHelper::class.java, "room_items").build()
+        val helper = Room.databaseBuilder(this, RoomHelper::class.java, ROOM_TABLE_NAME).build()
         itemDAO = helper.roomItemDao()
         syncDatabase()
         changeFragment(fragmentId)
         checkPermission()
         initialize()
+    }
+
+    @Suppress("IMPLICIT_CAST_TO_ANY")
+    private fun changeFragment(id: Int) {
+        fragmentId = id
+        val fragment = when (id) {
+            MAIN -> {
+                HomeFragment.instance()
+            }
+            LIST -> {
+                ListFragment.instance()
+            }
+            else -> {
+                HomeFragment.instance()
+            }
+        }
+        supportFragmentManager.beginTransaction().replace(R.id.container_main, fragment).commit()
     }
 
     private fun checkPermission() {
@@ -121,7 +146,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main_toolbar, menu)
+        menuInflater.inflate(R.menu.menu_toolbar, menu)
         return true
     }
 
@@ -133,7 +158,7 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.list_play -> {
                 if (fragmentId == MAIN) {
-                    item.icon = getDrawable(R.drawable.ic_list_toolbar_back)
+                    item.icon = getDrawable(R.drawable.ic_toolbar_recorder)
                     changeFragment(LIST)
                 } else {
                     item.icon = getDrawable(R.drawable.ic_main_toolbar_list)
@@ -154,44 +179,6 @@ class MainActivity : AppCompatActivity() {
                 zoomAnimation(binding.ivMainStartWindow)
             }
         }
-    }
-
-    // TODO 여기서부터 시작
-    fun insertItem(item: RoomItem) {
-        CoroutineScope(Dispatchers.IO).launch {
-            itemDAO.insert(item)
-            syncDatabase()
-        }
-    }
-
-    private fun syncDatabase() {
-        CoroutineScope(Dispatchers.IO).launch {
-            itemList.clear()
-            itemList.addAll(itemDAO.getList())
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode == RESULT_OK) {
-            LogUtil.d(TAG, "Result_ok pass")
-            when (requestCode) {
-                CODE_FILE_NAME -> {
-                    LogUtil.d(TAG, "request code pass")
-                    val name = data?.getStringExtra(KEY_FILE_NAME)
-                    record(this).addItem(name!!, this)
-                }
-            }
-        } else {
-            LogUtil.d(TAG, "result ok null")
-            record(this).removeFile()
-        }
-    }
-
-    fun writeLogWindow(msg: String) {  // textView
-        val totalMsg = "$msg\n${binding.layoutLogWindow.tvMainLogWindow.text}"
-        binding.layoutLogWindow.tvMainLogWindow.text = totalMsg
     }
 
     /**
@@ -221,7 +208,7 @@ class MainActivity : AppCompatActivity() {
 
         when (zoomState) {
             false -> {
-                LogUtil.i(TAG, "Animation Open")
+                LogUtil.i(TAG, "Log window Open")
                 with (logWindow) {
                     visibility = View.VISIBLE
                     bringToFront()
@@ -248,7 +235,7 @@ class MainActivity : AppCompatActivity() {
                 zoomState = true
             }
             true -> {
-                LogUtil.i(TAG, "Animation Close")
+                LogUtil.i(TAG, "Log window Closed")
                 currentAnimator = AnimatorSet().apply {
                     play(ObjectAnimator.ofFloat(logWindow, View.X, button.x)).apply {
                         with(ObjectAnimator.ofFloat(logWindow, View.Y, button.y))
@@ -275,21 +262,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("IMPLICIT_CAST_TO_ANY")
-    private fun changeFragment(id: Int) {
-        fragmentId = id
-        val fragment = when (id) {
-            MAIN -> {
-                HomeFragment.instance()
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val recordService = record(this)
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                CODE_FILE_NAME -> {
+                    val name = data?.getStringExtra(KEY_FILE_NAME)
+                    insertItem(name!!)
+                    Toast.makeText(this, file.name + " ${getString(R.string.toast_save_success)}", Toast.LENGTH_LONG).apply {
+                        setGravity(Gravity.TOP, 0, resources.getInteger(R.integer.toast_height))
+                        show()
+                    }
+                }
             }
-            LIST -> {
-                ListFragment.instance()
-            }
-            else -> {
-                HomeFragment.instance()
+        } else {
+            file.delete()
+            Toast.makeText(this, file.name + " ${getString(R.string.toast_save_failure)}", Toast.LENGTH_LONG).apply {
+                setGravity(Gravity.TOP, 0, resources.getInteger(R.integer.toast_height))
+                show()
             }
         }
-        supportFragmentManager.beginTransaction().replace(R.id.container_main, fragment).commit()
+    }
+
+    private fun insertItem(name: String) {
+        val itemName : String = if (name == "") file.name else name
+        val channel : String = if (recordChannel == AudioFormat.CHANNEL_IN_MONO) getString(R.string.mono) else getString(
+            R.string.stereo
+        )
+        val item = RoomItem(itemName, file.name, fileCreateTime, channel, recordRate)
+        CoroutineScope(Dispatchers.IO).launch {
+            itemDAO.insert(item)
+            syncDatabase()
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    fun writeLogWindow(msg: String) {
+        binding.layoutLogWindow.tvMainLogWindow.let { textView ->
+            textView.text = "$msg\n${textView.text}"
+        }
     }
 
     init {
@@ -298,16 +311,22 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        private var instance: MainActivity? = null
+        fun instance(): MainActivity? { return instance }
+
         private const val PERMISSION_CODE = 1
-        const val MAIN = 0x01
-        const val LIST = 0x02
+        private const val MAIN            = 0x01
+        private const val LIST            = 0x02
 
         var filePath = ""  // Internal Memory
 
         var itemList: MutableList<RoomItem> = mutableListOf()
         lateinit var itemDAO: RoomItemDao
-
-        private var instance: MainActivity? = null
-        fun instance(): MainActivity? { return instance }
+        fun syncDatabase() {
+            CoroutineScope(Dispatchers.IO).launch {
+                itemList.clear()
+                itemList.addAll(itemDAO.getList())
+            }
+        }
     }
 }

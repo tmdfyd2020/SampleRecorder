@@ -5,10 +5,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
+import org.techtown.samplerecorder.database.RoomItem.Companion.ROOM_TABLE_NAME
 
 @Dao
 interface RoomItemDao {
-    @Query("select * from room_items")
+    @Query("select * from $ROOM_TABLE_NAME")
     fun getList(): List<RoomItem>
 
     @Insert(onConflict = REPLACE)

@@ -54,9 +54,11 @@ class TrackService {
         job = CoroutineScope(Dispatchers.IO).launch {
             audioTrack!!.play()
             while (isPlaying) {
+                // Audio Track Read
                 audioData = queue.dequeue()
                 audioTrack!!.write(audioData!!, 0, bufferSize)
 
+                // Endpoint of empty queue
                 if (queue.isEmpty) {
                     emptyQueue = true
                     queue.copy()

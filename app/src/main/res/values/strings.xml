@@ -57,7 +57,8 @@
 
     <!-- Toast Message -->
     <string name="toast_delete">파일이 삭제되었습니다.</string>
-    <string name="toast_save">저장 완료</string>
+    <string name="toast_save_success">저장 완료</string>
+    <string name="toast_save_failure">저장 실패</string>
 
     <!-- activity_main.xml -->
     <string name="main_record_guide">Record Settings</string>
@@ -88,6 +89,7 @@
     <string name="view_model_play_rate">Sample Rate\n%s</string>
     <string name="view_model_volume">Volume\n%s</string>
 
-
-
+    <!-- menu_toolbar.xml -->
+    <string name="menu_toolbar_list">mode</string>
+    <string name="menu_toolbar_power_off">exit</string>
 </resources>

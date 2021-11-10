@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity" >
+    tools:context=".activity.MainActivity" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:orientation="vertical"
@@ -49,7 +49,7 @@
 
         <include
             android:id="@+id/layout_log_window"
-            android:layout_width="350dp"
+            android:layout_width="@dimen/main_log_window_width"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"

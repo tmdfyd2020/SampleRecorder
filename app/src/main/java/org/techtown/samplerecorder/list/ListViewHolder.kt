@@ -17,29 +17,27 @@ import org.techtown.samplerecorder.database.RoomItem
 import org.techtown.samplerecorder.list.ListFragment.Companion.BUTTON_PAUSE
 import org.techtown.samplerecorder.list.ListFragment.Companion.BUTTON_PLAY
 import org.techtown.samplerecorder.util.LogUtil
-import org.techtown.samplerecorder.MainActivity.Companion.filePath
-import org.techtown.samplerecorder.MainActivity.Companion.itemDAO
-import org.techtown.samplerecorder.MainActivity.Companion.itemList
+import org.techtown.samplerecorder.activity.MainActivity.Companion.filePath
+import org.techtown.samplerecorder.activity.MainActivity.Companion.itemDAO
+import org.techtown.samplerecorder.activity.MainActivity.Companion.itemList
 import org.techtown.samplerecorder.R
 import org.techtown.samplerecorder.databinding.ItemListBinding
 import java.io.File
 import java.io.RandomAccessFile
 
-class ListViewHolder(val binding: ItemListBinding, private val adapter: ListAdapter) : RecyclerView.ViewHolder(binding.root) {
+class ListViewHolder(private val binding: ItemListBinding, private val adapter: ListAdapter) : RecyclerView.ViewHolder(binding.root) {
 
-    private val TAG = this.javaClass.simpleName
+    private val playButton by lazy { binding.btnItemPlay }
+    private val seekBar    by lazy { binding.seekbarItem }
+    val layout             by lazy { binding.layoutItemBottom }
 
-    private val playButton = binding.btnItemPlay
-    private val seekBar = binding.seekbarItem
-    val layout = binding.layoutItemBottom
-    private val audioTrack by lazy { TrackService() }
-
-    private var randomFile: RandomAccessFile? = null
     private lateinit var currentItem: RoomItem
     private lateinit var currentFile: File
     private var currentPosition: Int? = -1
+    private val audioTrack by lazy { TrackService() }
+    private var randomFile: RandomAccessFile? = null
 
-    fun setData(item: RoomItem, position: Int) { // fileList: MutableList<File>, file: File, position: Int
+    fun setData(item: RoomItem, position: Int) {
         currentItem = item
         currentFile = File(filePath, item.fileName)
         with (binding) {
@@ -53,17 +51,14 @@ class ListViewHolder(val binding: ItemListBinding, private val adapter: ListAdap
 
     private val seekBarListener = object: SeekBar.OnSeekBarChangeListener {
         var seekPoint = 0
-        // 시크바 드래그 시
         override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
             if (fromUser) seekPoint = progress
         }
-        // 시크바 thumb 터치 시
         override fun onStartTrackingTouch(seekBar: SeekBar) {
             FLAG_PAUSE_STATE = true
             FLAG_CAN_PLAY = true
             playButton.setImageDrawable(BUTTON_PLAY)
         }
-        // 시크바 터치 해제 시
         override fun onStopTrackingTouch(seekBar: SeekBar) {
             FLAG_CAN_PLAY = false
             playButton.setImageDrawable(BUTTON_PAUSE)
@@ -136,11 +131,12 @@ class ListViewHolder(val binding: ItemListBinding, private val adapter: ListAdap
             .setIcon(context.getDrawable(R.drawable.ic_list_dialog_delete))
             .setPositiveButton(fromHtml("<font color='#3399FF'>${context.getString(R.string.yes)}</font>")) { _, _ ->
                 deleteItem()
-                Toast.makeText(context, context.getString(R.string.toast_delete), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_delete), Toast.LENGTH_SHORT).apply {
+                    setGravity(Gravity.TOP, 0, context.resources.getInteger(R.integer.toast_height))
+                    show()
+                }
             }
-            .setNegativeButton(
-                fromHtml("<font color='#F06292'>${context.getString(R.string.no)}</font>")
-            ) { dialog, _ -> dialog.cancel() }
+            .setNegativeButton(fromHtml("<font color='#F06292'>${context.getString(R.string.no)}</font>")) { dialog, _ -> dialog.cancel() }
         val dialog = builder.create()
         dialog.window!!.setGravity(Gravity.CENTER)
         dialog.show()

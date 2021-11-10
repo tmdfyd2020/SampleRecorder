@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".home.HomeFragment">
+    tools:context=".home.HomeFragment"
+    tools:ignore="MissingConstraints,ContentDescription">
 
     <data>
         <variable
-            name="viewModels"
+            name="vm"
             type="org.techtown.samplerecorder.home.HomeViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container_main"
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/white">
@@ -21,27 +22,17 @@
             android:id="@+id/img_recording"
             android:layout_width="@dimen/main_img_recording"
             android:layout_height="@dimen/main_img_recording"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/main_img_recording_margin_top"
             app:srcCompat="@drawable/ic_main_state_recording"
-            tools:ignore="ContentDescription"
-            android:visibility="invisible" />
+            style="@style/fragment_main_img_common" />
 
         <ImageView
             android:id="@+id/img_playing"
             android:layout_width="@dimen/main_img_playing"
             android:layout_height="@dimen/main_img_playing"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/main_img_playing_margin_top"
             app:srcCompat="@drawable/ic_main_state_playing"
-            tools:ignore="ContentDescription"
-            android:visibility="invisible" />
+            style="@style/fragment_main_img_common" />
 
         <com.visualizer.amplitude.AudioRecordView
             android:id="@+id/view_waveForm"
@@ -74,85 +65,42 @@
 
         <LinearLayout
             android:id="@+id/layout_main_record"
-            android:layout_width="@dimen/main_layout_width"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_marginTop="@dimen/main_content_margin_big"
-            app:layout_constraintTop_toBottomOf="@id/text_timer"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="@dimen/main_layout_margin_horizontal" >
+            android:layout_marginStart="@dimen/main_layout_margin_horizontal"
+            style="@style/fragment_main_container_common">
 
             <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/main_card_record_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/main_content_margin_big"
-                app:cardCornerRadius="@dimen/main_card_radius"
-                app:cardElevation="@dimen/main_card_elevation" >
+                style="@style/fragment_main_cardView_common">
 
                 <LinearLayout
                     android:id="@+id/container_record_settings"
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/white" >
+                    style="@style/fragment_main_layout_common">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
                         android:text="@string/main_record_guide"
                         android:textColor="@color/red_record_guide"
-                        android:textStyle="bold" />
+                        style="@style/fragment_main_tv_common" />
 
                     <Button
                         android:id="@+id/btn_record_source"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_middle"
-                        android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_source(viewModels.source)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_source(vm.source)}"
+                        style="@style/fragment_main_btn_record_setting" />
 
                     <Button
                         android:id="@+id/btn_record_channel"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
-                        android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_record_channel(viewModels.recordChannel)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_record_channel(vm.recordChannel)}"
+                        style="@style/fragment_main_btn_record_setting" />
 
                     <Button
                         android:id="@+id/btn_record_sampleRate"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
-                        android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_record_rate(viewModels.recordRate)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_record_rate(vm.recordRate)}"
+                        style="@style/fragment_main_btn_record_setting" />
 
                     <Button
                         android:id="@+id/btn_record_bufferSize"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
-                        android:background="@drawable/bg_btn_record_settings"
-                        android:text="@{@string/view_model_buffer_size(viewModels.bufferSize)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_buffer_size(vm.bufferSize)}"
+                        style="@style/fragment_main_btn_record_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -183,23 +131,13 @@
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/main_button_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/main_content_margin_big"
-                android:layout_marginBottom="@dimen/main_content_margin_big"
-                app:cardCornerRadius="@dimen/main_button_card_radius"
-                app:cardElevation="@dimen/main_card_elevation" >
+                style="@style/fragment_main_cardView_bottom_common">
 
                 <Button
                     android:id="@+id/btn_record"
-                    android:layout_width="@dimen/main_button_width"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:background="@drawable/bg_btn_record_active"
                     android:text="@string/record"
-                    android:textAllCaps="false"
-                    android:onClick="onClick" />
+                    style="@style/fragment_main_layout_common" />
 
             </androidx.cardview.widget.CardView>
 
@@ -207,109 +145,55 @@
 
         <LinearLayout
             android:id="@+id/layout_main_play"
-            android:orientation="vertical"
-            android:layout_width="@dimen/main_layout_width"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/text_timer"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="@dimen/main_content_margin_big"
-            android:layout_marginEnd="@dimen/main_layout_margin_horizontal" >
+            android:layout_marginEnd="@dimen/main_layout_margin_horizontal"
+            style="@style/fragment_main_container_common">
 
             <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/main_card_record_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/main_content_margin_big"
-                app:cardCornerRadius="@dimen/main_card_radius"
-                app:cardElevation="@dimen/main_card_elevation" >
+                style="@style/fragment_main_cardView_common">
 
                 <LinearLayout
                     android:id="@+id/container_play_settings"
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/white" >
+                    style="@style/fragment_main_layout_common">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
                         android:text="@string/main_play_guide"
                         android:textColor="@color/blue_play_guide"
-                        android:textStyle="bold" />
+                        style="@style/fragment_main_tv_common" />
 
                     <Button
                         android:id="@+id/btn_play_type"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_middle"
-                        android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_type(viewModels.type)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_type(vm.type)}"
+                        style="@style/fragment_main_btn_play_setting" />
 
                     <Button
                         android:id="@+id/btn_play_channel"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
-                        android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_play_channel(viewModels.playChannel)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_play_channel(vm.playChannel)}"
+                        style="@style/fragment_main_btn_play_setting" />
 
                     <Button
                         android:id="@+id/btn_play_sampleRate"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
-                        android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_play_rate(viewModels.playRate)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_play_rate(vm.playRate)}"
+                        style="@style/fragment_main_btn_play_setting" />
 
                     <Button
                         android:id="@+id/btn_play_volume"
-                        android:layout_width="@dimen/main_button_width"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/main_content_margin_small"
                         android:layout_marginBottom="@dimen/main_play_setting_margin_bottom"
-                        android:background="@drawable/bg_btn_play_settings"
-                        android:text="@{@string/view_model_volume(viewModels.volume)}"
-                        android:textSize="@dimen/main_button_text_size"
-                        android:textAllCaps="false"
-                        android:onClick="onClick" />
+                        android:text="@{@string/view_model_volume(vm.volume)}"
+                        style="@style/fragment_main_btn_play_setting" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:layout_width="@dimen/main_button_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/main_content_margin_big"
-                android:layout_marginBottom="@dimen/main_content_margin_big"
-                app:cardCornerRadius="@dimen/main_button_card_radius"
-                app:cardElevation="@dimen/main_card_elevation" >
+                style="@style/fragment_main_cardView_bottom_common">
 
                 <Button
                     android:id="@+id/btn_play"
-                    android:layout_width="@dimen/main_button_width"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:background="@drawable/bg_btn_play_active"
                     android:text="@string/play"
-                    android:textAllCaps="false"
-                    android:onClick="onClick" />
+                    style="@style/fragment_main_layout_common" />
 
             </androidx.cardview.widget.CardView>
 

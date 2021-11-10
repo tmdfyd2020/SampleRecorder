@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/file_name_dialog_width"
+    android:layout_height="wrap_content"
+    tools:ignore="MissingConstraints">
+
+    <TextView
+        android:id="@+id/tv_file_name_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/file_name_guide_text_height"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btn_file_name_save"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/file_name_guide_text_margin_top"
+        android:layout_marginStart="@dimen/file_name_guide_text_margin_start"
+        android:text="@string/file_name_text_guide"
+        android:textSize="@dimen/file_name_guide_text_size" />
+
+    <EditText
+        android:id="@+id/et_file_name"
+        android:layout_width="@dimen/file_name_et_width"
+        android:layout_height="@dimen/file_name_guide_text_height"
+        android:theme="@style/et_dialog_file_name"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tv_file_name_guide"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btn_file_name_save"
+        android:layout_marginTop="@dimen/file_name_et_margin_top"
+        android:paddingStart="@dimen/main_content_margin_small"
+        tools:ignore="RtlSymmetry">
+        <requestFocus/>
+    </EditText>
+
+    <Button
+        android:id="@+id/btn_file_name_save"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_file_name_back"
+        android:background="@drawable/bg_btn_list_settings"
+        android:text="@string/file_name_btn_save"
+        style="@style/layout_file_name_btn_common" />
+
+    <Button
+        android:id="@+id/btn_file_name_back"
+        app:layout_constraintStart_toEndOf="@+id/btn_file_name_save"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/bg_btn_inactive"
+        android:text="@string/file_name_btn_back"
+        style="@style/layout_file_name_btn_common"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
