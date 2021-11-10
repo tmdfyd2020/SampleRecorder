@@ -102,4 +102,13 @@
         <item name="android:textSize">@dimen/item_title_text_size_small</item>
     </style>
 
+    <!-- layout_list_setting.xml -->
+    <style name="toggle_layout_list_setting">
+        <item name="textOn">mono</item>
+        <item name="textOff">stereo</item>
+        <item name="colorOn">@color/blue_play</item>
+        <item name="colorBorder">@color/blue_play</item>
+        <item name="colorDisabled">@color/blue_play</item>
+    </style>
+
 </resources>

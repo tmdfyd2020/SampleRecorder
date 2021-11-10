@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/file_name_dialog_width"
     android:layout_height="wrap_content"
-    tools:ignore="MissingConstraints">
+    tools:ignore="MissingConstraints"
+    tools:context=".activity.DialogActivity">
 
     <TextView
         android:id="@+id/tv_file_name_guide"

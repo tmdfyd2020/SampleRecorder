@@ -23,13 +23,16 @@ class DialogActivity : AppCompatActivity() {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
         intent?.let {
-            if (it.getStringExtra(KEY_MODE_DIALOG) == MODE_FILE_NAME) {
-                editText.setFocusAndShowKeyboard(this)
-                layoutSetting.visibility = View.GONE
-                layoutFile.visibility = View.VISIBLE
-            } else {
-                layoutSetting.visibility = View.VISIBLE
-                layoutFile.visibility = View.GONE
+            when(it.getStringExtra(KEY_MODE_DIALOG)) {
+                MODE_FILE_NAME -> {
+                    editText.setFocusAndShowKeyboard(this)
+                    layoutSetting.visibility = View.GONE
+                    layoutFile.visibility = View.VISIBLE
+                }
+                MODE_LIST_SETTING -> {
+                    layoutSetting.visibility = View.VISIBLE
+                    layoutFile.visibility = View.GONE
+                }
             }
         }
     }

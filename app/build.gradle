@@ -69,4 +69,7 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     kapt "org.xerial:sqlite-jdbc:3.34.0"
     implementation "androidx.room:room-ktx:$room_version"
+
+    // Toggle Button library
+    implementation 'com.github.angads25:toggle:1.1.0'
 }
