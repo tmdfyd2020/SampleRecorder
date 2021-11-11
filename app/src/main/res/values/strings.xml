@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SampleRecorder</string>
+    <string name="app_name">녹음기</string>
 
     <!-- Exit -->
     <string name="exit">Exit</string>

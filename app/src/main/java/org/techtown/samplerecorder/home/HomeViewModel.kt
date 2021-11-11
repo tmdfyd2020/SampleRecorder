@@ -40,8 +40,8 @@ class HomeViewModel : ViewModel() {
     }
 
     companion object {
-        private const val MODE_RECORD         = "Record"
-        private const val MODE_PLAY           = "Play"
+        const val MODE_RECORD                 = "Record"
+        const val MODE_PLAY                   = "Play"
         private const val SETTING_SOURCE      = "Source"
         private const val SETTING_CHANNEL     = "Channel"
         private const val SETTING_RATE        = "Sample Rate"

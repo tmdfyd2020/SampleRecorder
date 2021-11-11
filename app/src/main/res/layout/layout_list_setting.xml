@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/file_name_dialog_width"
     android:layout_height="wrap_content"
+    tools:ignore="MissingConstraints"
     tools:context=".activity.DialogActivity">
 
     <ImageView
@@ -42,25 +43,13 @@
 
     <com.github.angads25.toggle.widget.LabeledSwitch
         android:id="@+id/toggle_list_setting_channel"
-        android:layout_width="85dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="70dp"
-        android:textSize="14sp"
-        app:on="false"
-        app:layout_constraintTop_toBottomOf="@+id/tv_list_setting_channel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:theme="@style/toggle_layout_list_setting" />
+        android:theme="@style/toggle_layout_list_setting_theme"
+        style="@style/toggle_layout_list_setting_style" />
 
-    <NumberPicker
+    <com.shawnlin.numberpicker.NumberPicker
         android:id="@+id/picker_list_setting_rate"
-        android:layout_width="wrap_content"
-        android:layout_height="150dp"
-        app:layout_constraintTop_toBottomOf="@+id/tv_list_setting_channel"
-        app:layout_constraintStart_toEndOf="@+id/toggle_list_setting_channel"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+        android:theme="@style/picker_layout_list_setting_theme"
+        style="@style/picker_layout_list_setting_style" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

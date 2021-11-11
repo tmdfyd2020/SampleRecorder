@@ -103,12 +103,45 @@
     </style>
 
     <!-- layout_list_setting.xml -->
-    <style name="toggle_layout_list_setting">
+    <style name="toggle_layout_list_setting_style">
+        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">75dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="layout_constraintTop_toBottomOf">@+id/tv_list_setting_channel</item>
+        <item name="layout_constraintStart_toStartOf">parent</item>
+        <item name="layout_constraintBottom_toBottomOf">parent</item>
+    </style>
+    <style name="toggle_layout_list_setting_theme">
+        <item name="on">false</item>
         <item name="textOn">mono</item>
         <item name="textOff">stereo</item>
         <item name="colorOn">@color/blue_play</item>
         <item name="colorBorder">@color/blue_play</item>
         <item name="colorDisabled">@color/blue_play</item>
+    </style>
+    <style name="picker_layout_list_setting_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">150dp</item>
+        <item name="layout_constraintTop_toBottomOf">@+id/tv_list_setting_rate</item>
+        <item name="layout_constraintStart_toEndOf">@+id/toggle_list_setting_channel</item>
+        <item name="layout_constraintEnd_toEndOf">parent</item>
+        <item name="layout_constraintBottom_toBottomOf">parent</item>
+        <item name="android:layout_marginEnd">15dp</item>
+        <item name="android:dividerPadding">10dp</item>
+    </style>
+    <style name="picker_layout_list_setting_theme">
+        <item name="np_dividerColor">@color/blue_play_guide</item>
+        <item name="np_dividerDistance">30dp</item>
+        <item name="np_dividerThickness">3dp</item>
+        <item name="np_dividerType">underline</item>
+        <item name="np_height">180dp</item>
+        <item name="np_itemSpacing">-10dp</item>
+        <item name="np_selectedTextColor">@color/blue_play_guide</item>
+        <item name="np_textColor">@color/btn_back</item>
+        <item name="np_textSize">18dp</item>
+        <item name="np_selectedTextSize">20dp</item>
+        <item name="np_width">60dp</item>
     </style>
 
 </resources>

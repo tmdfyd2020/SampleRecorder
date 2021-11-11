@@ -39,6 +39,7 @@ class DialogService private constructor(
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
+            checkIndex()
             val builder = AlertDialog.Builder(
                 it,
                 android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
@@ -49,6 +50,21 @@ class DialogService private constructor(
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
+    private fun checkIndex() {
+        when (playChannel) {
+            AudioFormat.CHANNEL_OUT_MONO -> playChannelIndex = 0
+            AudioFormat.CHANNEL_OUT_STEREO -> playChannelIndex = 1
+        }
+        when (playRate) {
+            resources.getInteger(R.integer.rate_8000) -> playRateIndex = 0
+            resources.getInteger(R.integer.rate_11025) -> playRateIndex = 1
+            resources.getInteger(R.integer.rate_16000) -> playRateIndex = 2
+            resources.getInteger(R.integer.rate_22050) -> playRateIndex = 3
+            resources.getInteger(R.integer.rate_44100) -> playRateIndex = 4
+        }
+    }
+
+    @Suppress("UNREACHABLE_CODE")
     private fun classificationDialog(builder: AlertDialog.Builder) : Dialog {
         return when (setting) {
             getString(R.string.exit) -> {

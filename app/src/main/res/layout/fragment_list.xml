@@ -18,9 +18,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="@dimen/main_content_margin_middle"
-            android:layout_marginBottom="@dimen/list_img_margin"
+            android:layout_marginBottom="@dimen/list_img_margin_note_10"
             android:src="@drawable/ic_list_setting"
             android:onClick="onClick" />
+        <!-- Note 10 : android:layout_marginBottom="@dimen/list_img_margin_note_10"
+             Tab S4  : android:layout_marginBottom="@dimen/list_img_margin" -->
 
         <androidx.cardview.widget.CardView
             android:layout_width="@dimen/list_card_width"

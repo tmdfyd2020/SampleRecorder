@@ -107,10 +107,20 @@ class HomeFragment : Fragment(), View.OnClickListener {
             loadInfo(getString(R.string.rate), getString(R.string.rate_16000), getString(R.string.record))
             loadInfo(getString(R.string.buffer_size), getString(R.string.buffer_size_1024))
             loadInfo(getString(R.string.type), getString(R.string.media))
-            loadInfo(getString(R.string.channel), getString(R.string.mono), getString(R.string.play))
             loadInfo(getString(R.string.rate), getString(R.string.rate_16000), getString(R.string.play))
             loadInfo(getString(R.string.source), getString(R.string.mic))
             loadInfo(getString(R.string.volume), nCurrentVolume.toString())
+        }
+        when (playChannel) {
+            AudioFormat.CHANNEL_OUT_MONO -> viewModel.loadInfo(getString(R.string.channel), getString(R.string.mono), getString(R.string.play))
+            AudioFormat.CHANNEL_OUT_STEREO -> viewModel.loadInfo(getString(R.string.channel), getString(R.string.stereo), getString(R.string.play))
+        }
+        when (playRate) {
+            resources.getInteger(R.integer.rate_8000) -> viewModel.loadInfo(getString(R.string.rate), getString(R.string.rate_8000), getString(R.string.play))
+            resources.getInteger(R.integer.rate_11025) -> viewModel.loadInfo(getString(R.string.rate), getString(R.string.rate_11025), getString(R.string.play))
+            resources.getInteger(R.integer.rate_16000) -> viewModel.loadInfo(getString(R.string.rate), getString(R.string.rate_16000), getString(R.string.play))
+            resources.getInteger(R.integer.rate_22050) -> viewModel.loadInfo(getString(R.string.rate), getString(R.string.rate_22050), getString(R.string.play))
+            resources.getInteger(R.integer.rate_44100) -> viewModel.loadInfo(getString(R.string.rate), getString(R.string.rate_44100), getString(R.string.play))
         }
         binding.btnPlay.isEnabled = false
     }
@@ -321,17 +331,17 @@ class HomeFragment : Fragment(), View.OnClickListener {
         private const val KEY_DATABASE   = "database"
         private const val KEY_FILE_DROP  = "fileDrop"
 
-        var isRecording = false
-        var isPlaying = false
-        var emptyQueue = false
+        var isRecording   = false
+        var isPlaying     = false
+        var emptyQueue    = false
 
-        var source = MediaRecorder.AudioSource.MIC
-        var type = AudioAttributes.USAGE_MEDIA
+        var source        = MediaRecorder.AudioSource.MIC
+        var type          = AudioAttributes.USAGE_MEDIA
         var recordChannel = AudioFormat.CHANNEL_IN_MONO
-        var playChannel = AudioFormat.CHANNEL_OUT_MONO
-        var recordRate = 16000
-        var playRate = 16000
-        var bufferSize = 1024
-        var volumeType = AudioManager.STREAM_MUSIC
+        var playChannel   = AudioFormat.CHANNEL_OUT_MONO
+        var recordRate    = 16000
+        var playRate      = 16000
+        var bufferSize    = 1024
+        var volumeType    = AudioManager.STREAM_MUSIC
     }
 }

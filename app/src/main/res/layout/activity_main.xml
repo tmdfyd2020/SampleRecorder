@@ -44,8 +44,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="@dimen/main_content_margin_middle"
+            android:layout_marginBottom="@dimen/list_img_margin"
             android:src="@drawable/ic_main_window"
             android:onClick="onClick" />
+        <!-- Note 10 : android:layout_marginBottom="@dimen/list_img_margin" o
+             Tab S4  : android:layout_marginBottom="@dimen/list_img_margin" x -->
 
         <include
             android:id="@+id/layout_log_window"

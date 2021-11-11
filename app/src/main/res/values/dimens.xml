@@ -45,6 +45,7 @@
     <dimen name="list_card_width">300dp</dimen>
     <dimen name="list_card_height">400dp</dimen>
     <dimen name="list_img_margin">200dp</dimen>
+    <dimen name="list_img_margin_note_10">100dp</dimen>
 
     <!-- item_list.xml -->
     <dimen name="item_card_radius">10dp</dimen>
