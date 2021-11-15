@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import org.techtown.samplerecorder.home.HomeFragment
 import org.techtown.samplerecorder.home.HomeFragment.Companion.bufferSize
@@ -317,20 +318,20 @@ class DialogService private constructor(
 
     @SuppressLint("InflateParams")
     private fun volumeDialog(builder: AlertDialog.Builder) : Dialog {
-        val viewSeekbar = activity?.layoutInflater?.inflate(R.layout.seekbar_volume, null)?.apply {
+        seekbarView = activity?.layoutInflater?.inflate(R.layout.seekbar_volume, null)?.apply {
             val seekBar = findViewById<View>(R.id.seekbar_volume) as SeekBar
             val textView = findViewById<View>(R.id.text_seekbar) as TextView
             val imageView = findViewById<View>(R.id.img_seekbar) as ImageView
             seekbarSetting(seekBar, textView, imageView)
-        }
-        builder.setTitle(getString(R.string.volume)).setView(viewSeekbar)
+        }!!
+        builder.setTitle(getString(R.string.volume)).setView(seekbarView)
         return builder.create()
     }
 
     private fun seekbarSetting(seekBar: SeekBar, volumeText: TextView, image: ImageView) {
         val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val currentVolume = audioManager.getStreamVolume(volumeType)
-        seekBar.min = 1
+        seekBar.min = 0
         seekBar.max = audioManager.getStreamMaxVolume(volumeType)
         seekBar.progress = currentVolume
         seekBarUi(currentVolume, volumeText, image)
@@ -344,6 +345,7 @@ class DialogService private constructor(
         })
     }
 
+    @Suppress("DEPRECATION")
     private fun seekBarUi(volume: Int, volumeText: TextView, image: ImageView) {
         when {
             volume >= 13 -> {
@@ -362,9 +364,9 @@ class DialogService private constructor(
         volumeText.text = volume.toString()
     }
 
-
     companion object {
         private const val TAG = "DialogService2"
+        fun dialogs(setting: String, mode: String = "") = DialogService(setting, mode)
 
         private var sourceIndex        = 1
         private var recordChannelIndex = 0
@@ -374,8 +376,8 @@ class DialogService private constructor(
         private var bufferSizeIndex    = 1
         private var typeIndex          = 1
 
-        fun dialogs(setting: String, mode: String = "") = DialogService(setting, mode)
+        @SuppressLint("StaticFieldLeak")
+        lateinit var seekbarView: View
     }
-
 }
 

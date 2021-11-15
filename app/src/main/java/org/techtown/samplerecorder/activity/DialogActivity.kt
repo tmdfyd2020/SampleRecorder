@@ -27,7 +27,6 @@ class DialogActivity : AppCompatActivity() {
     private val layoutSetting by lazy { binding.layoutListSetting.root }
     private val toggle        by lazy { binding.layoutListSetting.toggleListSettingChannel }
     private val picker        by lazy { binding.layoutListSetting.pickerListSettingRate }
-    private val homeFragment  by lazy { HomeFragment.instance() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,9 +35,9 @@ class DialogActivity : AppCompatActivity() {
         intent?.let {
             when(it.getStringExtra(KEY_MODE_DIALOG)) {
                 MODE_FILE_NAME -> {
-                    editText.setFocusAndShowKeyboard(this)
                     layoutSetting.visibility = View.GONE
                     layoutFile.visibility = View.VISIBLE
+                    editText.setFocusAndShowKeyboard(this)
                 }
                 MODE_LIST_SETTING -> {
                     layoutSetting.visibility = View.VISIBLE
@@ -116,6 +115,17 @@ class DialogActivity : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    override fun onStop() {
+        LogUtil.d(TAG, "")
+        super.onStop()
+    }
+
+    override fun onPause() {
+        editText.clearFocusAndHideKeyboard(this)
+        LogUtil.d(TAG, "")
+        super.onPause()
     }
 
     companion object {

@@ -4,6 +4,7 @@ import java.util.*
 import java.util.Queue
 
 class Queue {
+
     var queue: Queue<ByteArray>? = null
     var store: Queue<ByteArray>
 

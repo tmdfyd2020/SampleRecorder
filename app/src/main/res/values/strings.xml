@@ -37,8 +37,8 @@
     <!-- Audio Buffer Size -->
     <string name="buffer_size">Buffer Size</string>
     <string name="buffer_size_512">512</string>
-    <string name="buffer_size_1024">1024</string>
-    <string name="buffer_size_2048">2048</string>
+    <string name="buffer_size_1024">1,024</string>
+    <string name="buffer_size_2048">2,048</string>
 
     <!-- Audio Play Type -->
     <string name="type">Play Type</string>
@@ -63,7 +63,7 @@
     <!-- activity_main.xml -->
     <string name="main_record_guide">Record Settings</string>
     <string name="main_switch_button_guide">Drop</string>
-    <string name="main_play_guide">Record Settings</string>
+    <string name="main_play_guide">Play Settings</string>
 
     <!-- activity_list.xml -->
     <string name="list_guide">Play List</string>

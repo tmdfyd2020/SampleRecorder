@@ -39,6 +39,6 @@ object AppModule {
             val inputMethodManager =
                 context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             inputMethodManager.hideSoftInputFromWindow(this.windowToken, 0)
-        }, 30)
+        }, 0)
     }
 }
