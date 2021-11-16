@@ -6,6 +6,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Point
@@ -40,6 +41,7 @@ import org.techtown.samplerecorder.home.HomeFragment
 import org.techtown.samplerecorder.home.HomeFragment.Companion.recordChannel
 import org.techtown.samplerecorder.home.HomeFragment.Companion.recordRate
 import org.techtown.samplerecorder.list.ListFragment
+import org.techtown.samplerecorder.util.DialogService
 import org.techtown.samplerecorder.util.DialogService.Companion.dialogs
 import org.techtown.samplerecorder.util.LogUtil
 
@@ -93,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
+    @SuppressLint("SetTextI18n", "ClickableViewAccessibility", "InflateParams")
     private fun initialize() {
         // Toolbar initialization
         setSupportActionBar(binding.toolbarMain)
@@ -143,6 +145,8 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+
+        seekbarView = layoutInflater.inflate(R.layout.seekbar_volume, null)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -311,6 +315,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        @SuppressLint("StaticFieldLeak")
         private var instance: MainActivity? = null
         fun instance(): MainActivity? { return instance }
 
@@ -328,5 +333,8 @@ class MainActivity : AppCompatActivity() {
                 itemList.addAll(itemDAO.getList())
             }
         }
+
+        @SuppressLint("StaticFieldLeak")
+        lateinit var seekbarView: View
     }
 }

@@ -64,7 +64,7 @@ class ListViewHolder(private val binding: ItemListBinding, private val adapter: 
             playButton.setImageDrawable(BUTTON_PAUSE)
             randomFile = RandomAccessFile(currentFile, "r")
             audioTrack.create()
-            audioTrack.play(randomFile!!, seekBar, playButton, 0)  // TODO seekPoint 시 일정 확률로 노이즈
+            audioTrack.play(randomFile!!, seekBar, playButton, 0)  // ERROR seekPoint 시 일정 확률로 노이즈
         }
     }
 

@@ -31,12 +31,14 @@ import org.techtown.samplerecorder.home.HomeFragment.Companion.type
 import org.techtown.samplerecorder.home.HomeFragment.Companion.volumeType
 import org.techtown.samplerecorder.activity.MainActivity
 import org.techtown.samplerecorder.R
+import org.techtown.samplerecorder.activity.MainActivity.Companion.seekbarView
 
 class DialogService private constructor(
     private val setting: String,
     private val mode: String) : DialogFragment() {
 
     private val homeFragment by lazy { HomeFragment.instance() }
+    private val contexts by lazy { requireContext() }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
@@ -312,18 +314,21 @@ class DialogService private constructor(
                 }
                 typeIndex = which
                 activity?.volumeControlStream = volumeType
+                val audioManager = contexts.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                homeFragment.changeTextUi(getString(R.string.volume), audioManager.getStreamVolume(volumeType).toString())
             }
         return builder.create()
     }
 
     @SuppressLint("InflateParams")
     private fun volumeDialog(builder: AlertDialog.Builder) : Dialog {
-        seekbarView = activity?.layoutInflater?.inflate(R.layout.seekbar_volume, null)?.apply {
+        seekbarView = layoutInflater.inflate(R.layout.seekbar_volume, null)
+        seekbarView.apply {
             val seekBar = findViewById<View>(R.id.seekbar_volume) as SeekBar
             val textView = findViewById<View>(R.id.text_seekbar) as TextView
             val imageView = findViewById<View>(R.id.img_seekbar) as ImageView
             seekbarSetting(seekBar, textView, imageView)
-        }!!
+        }
         builder.setTitle(getString(R.string.volume)).setView(seekbarView)
         return builder.create()
     }
@@ -349,15 +354,15 @@ class DialogService private constructor(
     private fun seekBarUi(volume: Int, volumeText: TextView, image: ImageView) {
         when {
             volume >= 13 -> {
-                volumeText.setTextColor(requireContext().resources.getColor(R.color.red_record))
+                volumeText.setTextColor(contexts.resources.getColor(R.color.red_record))
                 image.setImageResource(R.drawable.ic_volume_loud)
             }
             volume in 10..12 -> {
-                volumeText.setTextColor(requireContext().resources.getColor(R.color.blue_play))
+                volumeText.setTextColor(contexts.resources.getColor(R.color.blue_play))
                 image.setImageResource(R.drawable.ic_volume_loud)
             }
             else -> {
-                volumeText.setTextColor(requireContext().resources.getColor(R.color.blue_play))
+                volumeText.setTextColor(contexts.resources.getColor(R.color.blue_play))
                 image.setImageResource(R.drawable.ic_volume_small)
             }
         }
@@ -365,7 +370,7 @@ class DialogService private constructor(
     }
 
     companion object {
-        private const val TAG = "DialogService2"
+        private const val TAG = "DialogService"
         fun dialogs(setting: String, mode: String = "") = DialogService(setting, mode)
 
         private var sourceIndex        = 1
@@ -375,9 +380,6 @@ class DialogService private constructor(
         private var playRateIndex      = 2
         private var bufferSizeIndex    = 1
         private var typeIndex          = 1
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var seekbarView: View
     }
 }
 
